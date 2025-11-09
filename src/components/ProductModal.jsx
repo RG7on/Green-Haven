@@ -1,0 +1,75 @@
+import { useEffect, useRef, useState } from 'react'
+import Button from './common/Button'
+import QuantitySelector from './common/QuantitySelector'
+import { useDispatch } from 'react-redux'
+import { addToCart } from '../redux/slices/cartSlice'
+import { useNavigate } from 'react-router-dom'
+
+export default function ProductModal({ product, onClose }) {
+  const [qty, setQty] = useState(1)
+  const backdropRef = useRef(null)
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose?.()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  const handleBackdrop = (e) => {
+    if (e.target === backdropRef.current) onClose?.()
+  }
+
+  const onAdd = () => {
+    dispatch(addToCart({ productId: product.id, qty }))
+  }
+
+  const onBuyNow = () => {
+    dispatch(addToCart({ productId: product.id, qty }))
+    onClose?.()
+    navigate('/cart')
+  }
+
+  return (
+    <div
+      ref={backdropRef}
+      onClick={handleBackdrop}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Product details for ${product.name}`}
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)',
+        display: 'grid', placeItems: 'center', padding: '1rem', zIndex: 50
+      }}
+    >
+      <div className="card" style={{
+        width: 'min(900px, 100%)',
+        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-md)',
+        padding: '1.25rem'
+      }}>
+        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', alignItems:'center'}}>
+          <div className="card" style={{padding:'1rem', background:'#fff'}}>
+            <img src={product.image || '/vite.svg'} alt="" style={{width:'100%', objectFit:'contain'}} />
+          </div>
+          <div className="stack">
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'start'}}>
+              <h2 className="display" style={{color:'var(--color-primary)'}}>{product.name}</h2>
+              <button aria-label="close" onClick={onClose} className="btn" style={{padding:'0.25rem 0.6rem'}}>×</button>
+            </div>
+            <p style={{color:'var(--color-text)'}}>{product.description}</p>
+            <div style={{fontWeight:700, fontSize:'1.25rem', color:'var(--color-primary)'}}>{product.price} {product.currency}</div>
+            <div style={{display:'flex', gap:16, alignItems:'center', flexWrap:'wrap'}}>
+              <QuantitySelector value={qty} onChange={setQty} />
+              <Button variant="primary" onClick={onAdd}>Add to Cart</Button>
+              <Button variant="dark" onClick={onBuyNow}>Buy Now</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
