@@ -7,7 +7,7 @@ export default function Navbar() {
   const user = useSelector(s => s.auth.user)
   return (
     <header className="container" style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 1.25rem'}}>
-      <Link to="/" style={{fontFamily:'var(--font-display)', fontSize:'1.8rem', color:'var(--color-primary)', textDecoration:'none'}}>Greene Heaven</Link>
+      <Link to="/home" style={{fontFamily:'var(--font-display)', fontSize:'1.8rem', color:'var(--color-primary)', textDecoration:'none'}}>Greene Heaven</Link>
       <nav style={{display:'flex', gap:'1.5rem', alignItems:'center'}}>
         {user ? (
           <Link to="/profile" style={{color:'var(--color-text)', textDecoration:'none', fontWeight:500, display:'flex', alignItems:'center', gap:'0.35rem'}}>

@@ -1,4 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { changeQty, removeFromCart, clearCart } from '../redux/slices/cartSlice'
 import QuantitySelector from '../components/common/QuantitySelector'
 import Button from '../components/common/Button'
@@ -8,6 +9,7 @@ export default function Cart() {
   const items = useSelector(s => s.cart.items)
   const products = useSelector(s => s.products.items)
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const enriched = items.map(i => ({...i, product: products.find(p => p.id === i.productId)}))
   const total = enriched.reduce((a,c)=>a + c.product.price * c.qty,0)
 
@@ -66,7 +68,7 @@ export default function Cart() {
           Total: <span style={{color:'var(--color-primary)'}}>{total.toFixed(2)} OMR</span>
         </p>
         <div style={{display:'flex', gap:'1rem', justifyContent:'center', flexWrap:'wrap'}}>
-          <Button variant="primary" style={{display:'flex', alignItems:'center', gap:'0.5rem'}}>
+          <Button variant="primary" onClick={() => navigate('/payment')} style={{display:'flex', alignItems:'center', gap:'0.5rem'}}>
             <MdPayment /> Continue To Payment
           </Button>
           <Button variant="dark" onClick={()=>dispatch(clearCart())} style={{display:'flex', alignItems:'center', gap:'0.5rem'}}>

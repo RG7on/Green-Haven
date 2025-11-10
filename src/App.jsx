@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import SignUp from './pages/SignUp'
 import Home from './pages/Home'
 import Cart from './pages/Cart'
+import Payment from './pages/Payment'
 import Profile from './pages/Profile'
 import { useSelector } from 'react-redux'
 
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+        <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
