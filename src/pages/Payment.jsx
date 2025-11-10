@@ -132,12 +132,12 @@ export default function Payment() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      padding: '3rem 1rem 200px 1rem',
+      padding: '2rem 1rem 140px 1rem',
       position: 'relative'
     }}>
       <div className="card" style={{
         padding: '0.75rem',
-        marginBottom: '1.25rem',
+        marginBottom: '1rem',
         maxWidth: '350px',
         width: '100%'
       }}>
@@ -192,18 +192,18 @@ export default function Payment() {
 
       <div style={{
         display: 'flex',
-        gap: '2rem',
+        gap: '1.75rem',
         flexWrap: 'wrap',
         justifyContent: 'center',
-        marginBottom: '3rem'
+        marginBottom: '2rem'
       }}>
         {paymentMethods.map(method => (
           <button
             key={method.id}
             onClick={() => setSelectedMethod(method.id)}
             style={{
-              width: '150px',
-              height: '100px',
+              width: '140px',
+              height: '90px',
               border: selectedMethod === method.id 
                 ? '3px solid var(--color-primary)' 
                 : '2px solid var(--color-border)',
@@ -237,9 +237,9 @@ export default function Payment() {
           disabled={processing}
           className="btn btn-primary"
           style={{
-            padding: '0.75rem 2rem',
+            padding: '0.7rem 1.75rem',
             fontSize: '1rem',
-            marginTop: '1.5rem',
+            marginTop: '1rem',
             opacity: processing ? 0.6 : 1,
             cursor: processing ? 'not-allowed' : 'pointer',
             minWidth: '200px',
@@ -256,12 +256,13 @@ export default function Payment() {
         className="btn"
         style={{
           marginTop: '1rem',
-          marginBottom: '2rem',
+          marginBottom: '1.5rem',
           background: 'transparent',
           color: 'var(--color-text)',
           border: '1px solid var(--color-border)',
           zIndex: 10,
-          position: 'relative'
+          position: 'relative',
+          padding: '0.7rem 1.75rem'
         }}
       >
         Back to Cart
@@ -278,7 +279,7 @@ export default function Payment() {
           width: '100%',
           maxWidth: '1200px',
           height: 'auto',
-          maxHeight: '120px',
+          maxHeight: '100px',
           objectFit: 'contain',
           objectPosition: 'bottom',
           pointerEvents: 'none',
