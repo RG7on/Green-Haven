@@ -1,25 +1,24 @@
-import { createSlice } from '@reduxjs/toolkit'
-import img1 from '../../assets/test_palceholders/1.png'
-import img2 from '../../assets/test_palceholders/2.png'
-import img3 from '../../assets/test_palceholders/3.png'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { fetchProducts } from '../../services/api.js'
 
-const initialState = {
-  items: [
-  { id: 'p1', name: 'Large Ceramic Caladium Potted Plant', price: 7.5, currency: 'OMR', description: 'Beautiful Caladium plant with vibrant leaves, perfect for indoor decoration. Easy to care for and thrives in indirect sunlight.', image: img1 },
-  { id: 'p2', name: 'Euphorbia Natural Cactus Potted Plant', price: 22, currency: 'OMR', description: 'Low-maintenance cactus variety that adds a touch of desert beauty to your space. Requires minimal watering.', image: img2 },
-  { id: 'p3', name: 'Alocasia Natural Polly Plant In White Pot', price: 45, currency: 'OMR', description: 'Stunning Alocasia Polly with dramatic arrow-shaped leaves. A statement piece for any room that loves humidity.', image: img3 },
-  ],
-  selected: null,
-}
+export const loadProducts = createAsyncThunk('products/load', async () => {
+  return await fetchProducts()
+})
+
+const initialState = { items: [], selected: null, status: 'idle', error: null }
 
 const productsSlice = createSlice({
   name: 'products',
   initialState,
   reducers: {
-    selectProduct(state, action) {
-      state.selected = action.payload
-    },
+    selectProduct(state, action) { state.selected = action.payload },
   },
+  extraReducers: builder => {
+    builder
+      .addCase(loadProducts.pending, (state) => { state.status = 'loading'; state.error = null })
+      .addCase(loadProducts.fulfilled, (state, action) => { state.status = 'succeeded'; state.items = action.payload })
+      .addCase(loadProducts.rejected, (state, action) => { state.status = 'failed'; state.error = action.error.message })
+  }
 })
 
 export const { selectProduct } = productsSlice.actions

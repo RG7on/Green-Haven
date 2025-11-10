@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { MdClose } from 'react-icons/md'
 import Button from './common/Button'
 import QuantitySelector from './common/QuantitySelector'
 import { useDispatch } from 'react-redux'
@@ -46,20 +47,29 @@ export default function ProductModal({ product, onClose }) {
       }}
     >
       <div className="card" style={{
+        position:'relative',
         width: 'min(900px, 100%)',
         background: 'var(--color-surface)', border: '1px solid var(--color-border)',
         borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-md)',
         padding: '1.25rem'
       }}>
+        <button
+          aria-label="close"
+          onClick={onClose}
+          style={{
+            position:'absolute', top:'10px', right:'10px',
+            background:'transparent', border:'none', cursor:'pointer',
+            color:'var(--color-text)'
+          }}
+        >
+          <MdClose style={{fontSize:'1.75rem', fontWeight:800}} />
+        </button>
         <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', alignItems:'center'}}>
           <div className="card" style={{padding:'1rem', background:'#fff'}}>
             <img src={product.image || '/vite.svg'} alt="" style={{width:'100%', objectFit:'contain'}} />
           </div>
           <div className="stack">
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'start'}}>
-              <h2 className="display" style={{color:'var(--color-primary)'}}>{product.name}</h2>
-              <button aria-label="close" onClick={onClose} className="btn" style={{padding:'0.25rem 0.6rem'}}>×</button>
-            </div>
+            <h2 className="display" style={{color:'var(--color-primary)'}}>{product.name}</h2>
             <p style={{color:'var(--color-text)'}}>{product.description}</p>
             <div style={{fontWeight:700, fontSize:'1.25rem', color:'var(--color-primary)'}}>{product.price} {product.currency}</div>
             <div style={{display:'flex', gap:16, alignItems:'center', flexWrap:'wrap'}}>
