@@ -1,50 +1,92 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import { clearCart } from '../redux/slices/cartSlice'
+import { createOrder } from '../redux/slices/ordersSlice'
 import mastercardLogo from '../assets/payment_method_logos/Mastercard_Symbol_1.png'
-import visaLogo from '../assets/payment_method_logos/Visa Inc._idDUM8TcN7_1.png'
 import paypalLogo from '../assets/payment_method_logos/PayPal_Logo_Alternative_1.png'
 import plantsDecor from '../assets/payment_method_logos/plants_payment_buttom.png'
 import checkoutPlant from '../assets/payment_method_logos/checkout_palnt.png'
+import Input from '../components/common/Input'
 
 export default function Payment() {
   const [selectedMethod, setSelectedMethod] = useState(null)
   const [processing, setProcessing] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [error, setError] = useState(null)
+  
+  // Shipping address form
+  const [fullName, setFullName] = useState('')
+  const [address, setAddress] = useState('')
+  const [city, setCity] = useState('')
+  const [postalCode, setPostalCode] = useState('')
+  const [country, setCountry] = useState('Oman')
+  
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const items = useSelector(s => s.cart.items)
-  const products = useSelector(s => s.products.items)
+  const { items } = useSelector(s => s.cart)
   
-  const enriched = items.map(i => ({...i, product: products.find(p => p._id === i.productId)}))
-  const total = enriched.reduce((a,c) => a + (c.product?.price || 0) * c.qty, 0)
+  // Calculate totals from cart items (backend format)
+  const subtotal = items.reduce((acc, item) => acc + (item.price || 0) * (item.quantity || 0), 0)
+  const tax = subtotal * 0.10 // 10% tax
+  const shippingCost = subtotal > 50 ? 0 : 5 // Free shipping over 50 OMR
+  const total = subtotal + tax + shippingCost
 
-  const paymentMethods = [
-    { id: 'mastercard', name: 'MasterCard', logo: mastercardLogo },
-    { id: 'visa', name: 'Visa', logo: visaLogo },
-    { id: 'paypal', name: 'PayPal', logo: paypalLogo }
-  ]
+  // Available payment methods shown as buttons below
 
-  const handlePayment = async () => {
-    if (!selectedMethod) return
+  const handlePayment = async (e) => {
+    e.preventDefault()
+    
+    if (!selectedMethod) {
+      setError('Please select a payment method')
+      return
+    }
+    
+    if (!fullName || !address || !city || !postalCode || !country) {
+      setError('Please fill in all shipping address fields')
+      return
+    }
     
     setProcessing(true)
+    setError(null)
     
-    // Simulate payment processing delay (2 seconds)
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Prepare order data matching backend schema
+    const orderData = {
+      items: items.map(item => ({
+        product: item.product?._id || item.product,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image
+      })),
+      shippingAddress: {
+        fullName,
+        address,
+        city,
+        postalCode,
+        country
+      },
+      paymentMethod: selectedMethod,
+      subtotal,
+      tax,
+      shippingCost,
+      totalPrice: total
+    }
     
-    // Simulate successful payment
+    // Create order in database
+    const result = await dispatch(createOrder(orderData))
+    
     setProcessing(false)
-    setShowSuccess(true)
     
-    // Clear cart after successful payment
-    dispatch(clearCart())
-    
-    // Redirect to home after 3 seconds
-    setTimeout(() => {
-      navigate('/home')
-    }, 3000)
+    if (result.type === 'orders/createOrder/fulfilled') {
+      setShowSuccess(true)
+      
+      // Redirect to orders page after 3 seconds
+      setTimeout(() => {
+        navigate('/orders')
+      }, 3000)
+    } else {
+      setError(result.payload || 'Failed to create order. Please try again.')
+    }
   }
   
   // Redirect if cart is empty
@@ -80,21 +122,22 @@ export default function Payment() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '2rem',
-        textAlign: 'center'
-      }}>
-        <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '2rem',
-          color: 'var(--color-text)',
-          marginBottom: '0.5rem'
+          padding: '2rem'
         }}>
-          Thank you
-        </h1>
-        <p style={{
-          color: 'var(--color-text)',
-          fontSize: '1.1rem',
-          marginBottom: '2rem',
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '2.5rem',
+            color: 'var(--color-primary)',
+            marginBottom: '1rem',
+            textAlign: 'center'
+          }}>
+            ✅ Order Placed Successfully!
+          </h1>
+        
+          <p style={{
+            color: 'var(--color-text)',
+            fontSize: '1.15rem',
+            textAlign: 'center',
           maxWidth: '400px',
           lineHeight: '1.6'
         }}>
@@ -120,7 +163,7 @@ export default function Payment() {
         </p>
         
         <p style={{color: 'var(--color-muted)', marginTop: '2rem', fontSize: '0.9rem'}}>
-          Redirecting to home...
+            Redirecting to orders page...
         </p>
       </div>
     )
@@ -135,138 +178,245 @@ export default function Payment() {
       padding: '2rem 1rem 140px 1rem',
       position: 'relative'
     }}>
-      <div className="card" style={{
-        padding: '0.75rem',
-        marginBottom: '1rem',
-        maxWidth: '350px',
-        width: '100%'
-      }}>
-        <h2 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '0.95rem',
-          color: 'var(--color-text)',
-          marginBottom: '0.6rem'
+      <form onSubmit={handlePayment} style={{width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+        {/* Order Summary */}
+        <div className="card" style={{
+          padding: '0.75rem',
+          marginBottom: '1.5rem',
+          maxWidth: '350px',
+          width: '100%'
         }}>
-          Order Summary
-        </h2>
-        <div style={{borderTop: '1px solid var(--color-border)', paddingTop: '0.6rem'}}>
-          {enriched.map(item => (
-            <div key={item.productId} style={{
+          <h2 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '0.95rem',
+            color: 'var(--color-text)',
+            marginBottom: '0.6rem'
+          }}>
+            Order Summary
+          </h2>
+          <div style={{borderTop: '1px solid var(--color-border)', paddingTop: '0.6rem'}}>
+            {items.map(item => (
+              <div key={item.product?._id || item.product} style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '0.35rem',
+                color: 'var(--color-text)',
+                fontSize: '0.85rem'
+              }}>
+                <span>{item.name} × {item.quantity}</span>
+                <span style={{fontWeight: 600}}>
+                  {(item.price * item.quantity).toFixed(2)} OMR
+                </span>
+              </div>
+            ))}
+            <div style={{marginTop: '0.6rem', paddingTop: '0.6rem', borderTop: '1px solid var(--color-border)'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.25rem'}}>
+                <span>Subtotal</span>
+                <span>{subtotal.toFixed(2)} OMR</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.25rem'}}>
+                <span>Tax (10%)</span>
+                <span>{tax.toFixed(2)} OMR</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem'}}>
+                <span>Shipping</span>
+                <span>{shippingCost === 0 ? 'FREE' : `${shippingCost.toFixed(2)} OMR`}</span>
+              </div>
+            </div>
+            <div style={{
+              borderTop: '2px solid var(--color-border)',
+              marginTop: '0.6rem',
+              paddingTop: '0.6rem',
               display: 'flex',
               justifyContent: 'space-between',
-              marginBottom: '0.35rem',
-              color: 'var(--color-text)',
-              fontSize: '0.85rem'
+              fontSize: '1rem',
+              fontWeight: 700,
+              color: 'var(--color-primary)'
             }}>
-              <span>{item.product?.name} × {item.qty}</span>
-              <span style={{fontWeight: 600}}>
-                {((item.product?.price || 0) * item.qty).toFixed(2)} OMR
-              </span>
+              <span>Total</span>
+              <span>{total.toFixed(2)} OMR</span>
             </div>
-          ))}
-          <div style={{
-            borderTop: '2px solid var(--color-border)',
-            marginTop: '0.6rem',
-            paddingTop: '0.6rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: '1rem',
-            fontWeight: 700,
-            color: 'var(--color-primary)'
-          }}>
-            <span>Total</span>
-            <span>{total.toFixed(2)} OMR</span>
           </div>
         </div>
-      </div>
 
-      <h1 style={{
-        fontFamily: 'var(--font-display)',
-        fontSize: '1.6rem',
-        color: 'var(--color-text)',
-        marginBottom: '1.25rem',
-        textAlign: 'center'
-      }}>
-        Choose your Payment method
-      </h1>
+        {/* Shipping Address */}
+        <div className="card" style={{padding: '1.5rem', marginBottom: '1.5rem', width: '100%', maxWidth: '500px'}}>
+          <h2 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '1.2rem',
+            color: 'var(--color-primary)',
+            marginBottom: '1rem'
+          }}>
+            Shipping Address
+          </h2>
+          <div className="stack">
+            <Input 
+              label="Full Name" 
+              value={fullName} 
+              onChange={e => setFullName(e.target.value)} 
+              required
+            />
+            <Input 
+              label="Address" 
+              value={address} 
+              onChange={e => setAddress(e.target.value)} 
+              required
+            />
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
+              <Input 
+                label="City" 
+                value={city} 
+                onChange={e => setCity(e.target.value)} 
+                required
+              />
+              <Input 
+                label="Postal Code" 
+                value={postalCode} 
+                onChange={e => setPostalCode(e.target.value)} 
+                required
+              />
+            </div>
+            <Input 
+              label="Country" 
+              value={country} 
+              onChange={e => setCountry(e.target.value)} 
+              required
+            />
+          </div>
+        </div>
 
-      <div style={{
-        display: 'flex',
-        gap: '1.75rem',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        marginBottom: '2rem'
-      }}>
-        {paymentMethods.map(method => (
+        {error && (
+          <div style={{
+            padding: '1rem',
+            backgroundColor: 'var(--color-danger)',
+            color: 'white',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '1rem',
+            width: '100%',
+            maxWidth: '500px'
+          }}>
+            {error}
+          </div>
+        )}
+
+        <h1 style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: '1.6rem',
+          color: 'var(--color-text)',
+          marginBottom: '1.25rem',
+          textAlign: 'center'
+        }}>
+          Choose your Payment method
+        </h1>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '1rem',
+          width: '100%',
+          maxWidth: '500px',
+          marginBottom: '1.5rem'
+        }}>
           <button
-            key={method.id}
-            onClick={() => setSelectedMethod(method.id)}
+            type="button"
+            onClick={() => setSelectedMethod('credit_card')}
             style={{
-              width: '140px',
-              height: '90px',
-              border: selectedMethod === method.id 
-                ? '3px solid var(--color-primary)' 
-                : '2px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              background: 'white',
-              cursor: 'pointer',
               padding: '1rem',
-              transition: 'all 0.3s ease',
-              boxShadow: selectedMethod === method.id 
-                ? 'var(--shadow-md)' 
-                : 'var(--shadow-sm)',
-              transform: selectedMethod === method.id ? 'scale(1.05)' : 'scale(1)'
+              border: selectedMethod === 'credit_card' ? '2.5px solid var(--color-primary)' : '2px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              background: selectedMethod === 'credit_card' ? 'rgba(46, 125, 50, 0.08)' : 'white',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.5rem'
             }}
           >
             <img 
-              src={method.logo} 
-              alt={method.name}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain'
-              }}
+              src={mastercardLogo} 
+              alt="Credit Card" 
+              style={{width: '80px', height: 'auto', objectFit: 'contain'}}
             />
+            <span style={{color: 'var(--color-text)', fontSize: '0.95rem'}}>Credit Card</span>
           </button>
-        ))}
-      </div>
 
-      {selectedMethod && (
+          <button
+            type="button"
+            onClick={() => setSelectedMethod('paypal')}
+            style={{
+              padding: '1rem',
+              border: selectedMethod === 'paypal' ? '2.5px solid var(--color-primary)' : '2px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              background: selectedMethod === 'paypal' ? 'rgba(46, 125, 50, 0.08)' : 'white',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <img 
+              src={paypalLogo} 
+              alt="PayPal" 
+              style={{width: '80px', height: 'auto', objectFit: 'contain'}}
+            />
+            <span style={{color: 'var(--color-text)', fontSize: '0.95rem'}}>PayPal</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSelectedMethod('cash_on_delivery')}
+            style={{
+              padding: '1rem',
+              border: selectedMethod === 'cash_on_delivery' ? '2.5px solid var(--color-primary)' : '2px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              background: selectedMethod === 'cash_on_delivery' ? 'rgba(46, 125, 50, 0.08)' : 'white',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <span style={{fontSize: '2.5rem'}}>💵</span>
+            <span style={{color: 'var(--color-text)', fontSize: '0.95rem'}}>Cash on Delivery</span>
+          </button>
+        </div>
+
         <button
-          onClick={handlePayment}
-          disabled={processing}
+          type="submit"
+          disabled={!selectedMethod || processing}
           className="btn btn-primary"
           style={{
-            padding: '0.7rem 1.75rem',
-            fontSize: '1rem',
-            marginTop: '1rem',
-            opacity: processing ? 0.6 : 1,
-            cursor: processing ? 'not-allowed' : 'pointer',
-            minWidth: '200px',
-            zIndex: 10,
-            position: 'relative'
+            width: '100%',
+            maxWidth: '500px',
+            padding: '1rem 2rem',
+            fontSize: '1.1rem',
+            opacity: (!selectedMethod || processing) ? 0.6 : 1,
+            cursor: (!selectedMethod || processing) ? 'not-allowed' : 'pointer'
           }}
         >
-          {processing ? 'Processing...' : `Pay ${total.toFixed(2)} OMR`}
+          {processing ? 'Processing...' : 'Pay Now'}
         </button>
-      )}
-      
-      <button
-        onClick={() => navigate('/cart')}
-        className="btn"
-        style={{
-          marginTop: '1rem',
-          marginBottom: '1.5rem',
-          background: 'transparent',
-          color: 'var(--color-text)',
-          border: '1px solid var(--color-border)',
-          zIndex: 10,
-          position: 'relative',
-          padding: '0.7rem 1.75rem'
-        }}
-      >
-        Back to Cart
-      </button>
+
+        <button
+          type="button"
+          onClick={() => navigate('/cart')}
+          className="btn"
+          style={{
+            marginTop: '1rem',
+            marginBottom: '1.5rem',
+            background: 'transparent',
+            color: 'var(--color-text)',
+            border: '1px solid var(--color-border)'
+          }}
+        >
+          Back to Cart
+        </button>
+      </form>
 
       <img 
         src={plantsDecor} 

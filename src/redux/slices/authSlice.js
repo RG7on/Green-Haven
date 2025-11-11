@@ -72,6 +72,44 @@ export const login = createAsyncThunk(
   }
 )
 
+// Async thunk for updating user profile
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (profileData, { rejectWithValue }) => {
+    try {
+      const user = localStorage.getItem('user')
+      if (!user) {
+        return rejectWithValue('No authentication token')
+      }
+      const userData = JSON.parse(user)
+      const token = userData.token
+
+      const response = await fetch(`${API_URL}/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(profileData)
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        return rejectWithValue(data.message || 'Update failed')
+      }
+
+      // Update user data in localStorage with token
+      const updatedUser = { ...data.data, token }
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+
+      return updatedUser
+    } catch (error) {
+      return rejectWithValue(error.message || 'Network error')
+    }
+  }
+)
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -118,6 +156,20 @@ const authSlice = createSlice({
         state.error = null
       })
       .addCase(login.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.payload
+      })
+      // Update profile cases
+      .addCase(updateProfile.pending, (state) => {
+        state.status = 'loading'
+        state.error = null
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        state.user = action.payload
+        state.error = null
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.payload
       })

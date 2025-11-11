@@ -1,18 +1,51 @@
-import { useSelector } from 'react-redux'
-import { Link } from 'react-router-dom'
-import { MdShoppingCart, MdPerson, MdLogin } from 'react-icons/md'
+import { useSelector, useDispatch } from 'react-redux'
+import { Link, useNavigate } from 'react-router-dom'
+import { MdShoppingCart, MdPerson, MdLogin, MdLogout, MdShoppingBag } from 'react-icons/md'
+import { logout } from '../../redux/slices/authSlice'
+import { clearCart } from '../../redux/slices/cartSlice'
 
 export default function Navbar() {
   const cartCount = useSelector(s => s.cart.items.reduce((a,c)=>a+(c.quantity || 0), 0))
   const user = useSelector(s => s.auth.user)
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    dispatch(logout())
+    dispatch(clearCart())
+    navigate('/')
+  }
+
   return (
     <header className="container" style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 1.25rem'}}>
       <Link to="/home" style={{fontFamily:'var(--font-display)', fontSize:'1.8rem', color:'var(--color-primary)', textDecoration:'none'}}>Greene Heaven</Link>
       <nav style={{display:'flex', gap:'1.5rem', alignItems:'center'}}>
         {user ? (
-          <Link to="/profile" style={{color:'var(--color-text)', textDecoration:'none', fontWeight:500, display:'flex', alignItems:'center', gap:'0.35rem'}}>
-            <MdPerson style={{fontSize:'1.3rem'}} /> Profile
-          </Link>
+          <>
+            <Link to="/orders" style={{color:'var(--color-text)', textDecoration:'none', fontWeight:500, display:'flex', alignItems:'center', gap:'0.35rem'}}>
+              <MdShoppingBag style={{fontSize:'1.3rem'}} /> Orders
+            </Link>
+            <Link to="/profile" style={{color:'var(--color-text)', textDecoration:'none', fontWeight:500, display:'flex', alignItems:'center', gap:'0.35rem'}}>
+              <MdPerson style={{fontSize:'1.3rem'}} /> Profile
+            </Link>
+            <button 
+              onClick={handleLogout}
+              style={{
+                background:'transparent',
+                border:'none',
+                color:'var(--color-text)',
+                cursor:'pointer',
+                fontWeight:500,
+                display:'flex',
+                alignItems:'center',
+                gap:'0.35rem',
+                fontSize:'1rem',
+                fontFamily:'inherit'
+              }}
+            >
+              <MdLogout style={{fontSize:'1.3rem'}} /> Logout
+            </button>
+          </>
         ) : (
           <Link to="/login" style={{color:'var(--color-text)', textDecoration:'none', fontWeight:500, display:'flex', alignItems:'center', gap:'0.35rem'}}>
             <MdLogin style={{fontSize:'1.3rem'}} /> Login

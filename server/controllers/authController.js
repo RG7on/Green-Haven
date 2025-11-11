@@ -162,3 +162,59 @@ export const getCurrentUser = async (req, res) => {
     })
   }
 }
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private (requires token)
+export const updateProfile = async (req, res) => {
+  try {
+    const { firstName, lastName } = req.body
+
+    // Validation - Check if fields are provided
+    if (!firstName || !lastName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide first name and last name'
+      })
+    }
+
+    // Business Logic - Validate name lengths
+    if (firstName.length < 2 || lastName.length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Names must be at least 2 characters long'
+      })
+    }
+
+    // Find and update user
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      })
+    }
+
+    user.firstName = firstName.trim()
+    user.lastName = lastName.trim()
+    await user.save()
+
+    // Return updated user data (excluding password)
+    res.status(200).json({
+      success: true,
+      data: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      }
+    })
+  } catch (error) {
+    console.error('Update profile error:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating profile',
+      error: error.message
+    })
+  }
+}
