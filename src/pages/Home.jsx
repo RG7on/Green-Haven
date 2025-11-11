@@ -1,11 +1,12 @@
 import { useSelector, useDispatch } from 'react-redux'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '../components/common/Button'
+import Toast from '../components/common/Toast'
 import { addToCart } from '../redux/slices/cartSlice'
 import { selectProduct, loadProducts } from '../redux/slices/productsSlice'
 import ProductModal from '../components/ProductModal'
 
-function ProductCard({ product }) {
+function ProductCard({ product, onAddToCart }) {
   const dispatch = useDispatch()
   const openDetails = () => dispatch(selectProduct(product))
   const onKeyOpen = (e) => {
@@ -14,6 +15,13 @@ function ProductCard({ product }) {
       openDetails()
     }
   }
+  
+  const handleQuickAdd = (e) => {
+    e.stopPropagation()
+    dispatch(addToCart({productId: product._id}))
+    onAddToCart?.(product.name)
+  }
+  
   return (
     <div
       className="card"
@@ -31,7 +39,7 @@ function ProductCard({ product }) {
         <div style={{fontWeight:700, color:'var(--color-primary)'}}>{product.price} {product.currency}</div>
         <div style={{display:'flex', gap:8}}>
           <Button onClick={(e)=>{ e.stopPropagation(); openDetails() }}>View Details</Button>
-          <Button aria-label="quick add" onClick={(e)=>{ e.stopPropagation(); dispatch(addToCart({productId: product.id}))}}>+ Cart</Button>
+          <Button aria-label="quick add" onClick={handleQuickAdd}>+ Cart</Button>
         </div>
       </div>
     </div>
@@ -41,10 +49,15 @@ function ProductCard({ product }) {
 export default function Home() {
   const { items: products, status, error, selected } = useSelector(s => s.products)
   const dispatch = useDispatch()
+  const [toast, setToast] = useState(null)
   
   useEffect(() => {
     if (status === 'idle') dispatch(loadProducts())
   }, [status, dispatch])
+  
+  const handleAddToCart = (productName) => {
+    setToast(`${productName} added to cart!`)
+  }
   
   return (
     <div className="container">
@@ -52,10 +65,13 @@ export default function Home() {
       {status === 'loading' && <p style={{textAlign:'center'}}>Loading products...</p>}
       {status === 'failed' && <p style={{textAlign:'center', color:'var(--color-danger)'}}>Failed: {error}</p>}
       <div style={{display:'flex', flexWrap:'wrap', gap:'1.5rem', justifyContent:'center'}}>
-        {products.map(p => <ProductCard key={p._id || p.id} product={p} />)}
+        {products.map(p => <ProductCard key={p._id || p.id} product={p} onAddToCart={handleAddToCart} />)}
       </div>
       {selected && (
         <ProductModal product={selected} onClose={()=>dispatch(selectProduct(null))} />
+      )}
+      {toast && (
+        <Toast message={toast} onClose={() => setToast(null)} />
       )}
     </div>
   )

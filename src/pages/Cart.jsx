@@ -10,8 +10,8 @@ export default function Cart() {
   const products = useSelector(s => s.products.items)
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const enriched = items.map(i => ({...i, product: products.find(p => p.id === i.productId)}))
-  const total = enriched.reduce((a,c)=>a + c.product.price * c.qty,0)
+  const enriched = items.map(i => ({...i, product: products.find(p => p._id === i.productId)}))
+  const total = enriched.reduce((a,c)=> a + (c.product?.price || 0) * c.qty, 0)
 
   if (enriched.length === 0) {
     return (
@@ -30,7 +30,9 @@ export default function Cart() {
         <h2 className="display" style={{textAlign:'center', color:'var(--color-primary)', margin:0}}>Shopping Cart</h2>
       </div>
       <div className="stack" style={{gap:'1rem'}}>
-        {enriched.map(line => (
+        {enriched.map(line => {
+          if (!line.product) return null // Skip if product not found
+          return (
           <div key={line.productId} className="card" style={{display:'grid', gridTemplateColumns:'100px 1fr auto', gap:'1.25rem', padding:'1rem', alignItems:'center'}}>
             <img src={line.product.image || '/vite.svg'} alt={line.product.name} style={{width:100, height:100, objectFit:'contain', background:'#fff', borderRadius:'var(--radius-md)', border:'1px solid var(--color-border)'}} />
             <div className="stack" style={{gap:'0.5rem'}}>
@@ -61,7 +63,8 @@ export default function Cart() {
               <MdDelete />
             </button>
           </div>
-        ))}
+          )
+        })}
       </div>
       <div className="card" style={{padding:'1.5rem', marginTop:'1rem', textAlign:'center'}}>
         <p style={{fontSize:'1.5rem', color:'var(--color-text)', marginBottom:'1.5rem', fontWeight:700}}>

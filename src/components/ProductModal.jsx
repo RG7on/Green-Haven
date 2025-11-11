@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { MdClose } from 'react-icons/md'
 import Button from './common/Button'
 import QuantitySelector from './common/QuantitySelector'
+import Toast from './common/Toast'
 import { useDispatch } from 'react-redux'
 import { addToCart } from '../redux/slices/cartSlice'
 import { useNavigate } from 'react-router-dom'
 
 export default function ProductModal({ product, onClose }) {
   const [qty, setQty] = useState(1)
+  const [toast, setToast] = useState(null)
   const backdropRef = useRef(null)
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -25,11 +27,12 @@ export default function ProductModal({ product, onClose }) {
   }
 
   const onAdd = () => {
-    dispatch(addToCart({ productId: product.id, qty }))
+    dispatch(addToCart({ productId: product._id, qty }))
+    setToast(`${qty}x ${product.name} added to cart!`)
   }
 
   const onBuyNow = () => {
-    dispatch(addToCart({ productId: product.id, qty }))
+    dispatch(addToCart({ productId: product._id, qty }))
     onClose?.()
     navigate('/cart')
   }
@@ -79,6 +82,9 @@ export default function ProductModal({ product, onClose }) {
             </div>
           </div>
         </div>
+        {toast && (
+          <Toast message={toast} onClose={() => setToast(null)} />
+        )}
       </div>
     </div>
   )
