@@ -1,19 +1,47 @@
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { changeQty, removeFromCart, clearCart } from '../redux/slices/cartSlice'
+import { useEffect } from 'react'
+import { fetchCart, updateCartItemAsync, removeFromCartAsync, clearCartAsync } from '../redux/slices/cartSlice'
 import QuantitySelector from '../components/common/QuantitySelector'
 import Button from '../components/common/Button'
 import { MdShoppingCart, MdDelete, MdPayment, MdDeleteSweep } from 'react-icons/md'
 
 export default function Cart() {
-  const items = useSelector(s => s.cart.items)
-  const products = useSelector(s => s.products.items)
+  const { items, status } = useSelector(s => s.cart)
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const enriched = items.map(i => ({...i, product: products.find(p => p._id === i.productId)}))
-  const total = enriched.reduce((a,c)=> a + (c.product?.price || 0) * c.qty, 0)
 
-  if (enriched.length === 0) {
+  // Fetch cart when component loads
+  useEffect(() => {
+    dispatch(fetchCart())
+  }, [dispatch])
+
+  // Calculate total from cart items
+  const total = items.reduce((acc, item) => {
+    return acc + (item.price || 0) * (item.quantity || 0)
+  }, 0)
+
+  const handleQuantityChange = async (productId, quantity) => {
+    await dispatch(updateCartItemAsync({ productId, quantity }))
+  }
+
+  const handleRemoveItem = async (productId) => {
+    await dispatch(removeFromCartAsync(productId))
+  }
+
+  const handleClearCart = async () => {
+    await dispatch(clearCartAsync())
+  }
+
+  if (status === 'loading') {
+    return (
+      <div className="container stack" style={{paddingTop:'3rem', textAlign:'center', alignItems:'center'}}>
+        <p>Loading cart...</p>
+      </div>
+    )
+  }
+
+  if (items.length === 0) {
     return (
       <div className="container stack" style={{paddingTop:'3rem', textAlign:'center', alignItems:'center'}}>
         <MdShoppingCart style={{fontSize:'5rem', color:'var(--color-border)'}} />
@@ -30,19 +58,22 @@ export default function Cart() {
         <h2 className="display" style={{textAlign:'center', color:'var(--color-primary)', margin:0}}>Shopping Cart</h2>
       </div>
       <div className="stack" style={{gap:'1rem'}}>
-        {enriched.map(line => {
-          if (!line.product) return null // Skip if product not found
+        {items.map(item => {
+          const productId = item.product?._id || item.product
           return (
-          <div key={line.productId} className="card" style={{display:'grid', gridTemplateColumns:'100px 1fr auto', gap:'1.25rem', padding:'1rem', alignItems:'center'}}>
-            <img src={line.product.image || '/vite.svg'} alt={line.product.name} style={{width:100, height:100, objectFit:'contain', background:'#fff', borderRadius:'var(--radius-md)', border:'1px solid var(--color-border)'}} />
+          <div key={productId} className="card" style={{display:'grid', gridTemplateColumns:'100px 1fr auto', gap:'1.25rem', padding:'1rem', alignItems:'center'}}>
+            <img src={item.image || '/vite.svg'} alt={item.name} style={{width:100, height:100, objectFit:'contain', background:'#fff', borderRadius:'var(--radius-md)', border:'1px solid var(--color-border)'}} />
             <div className="stack" style={{gap:'0.5rem'}}>
-              <strong style={{color:'var(--color-text)', fontSize:'1.1rem'}}>{line.product.name}</strong>
-              <div style={{color:'var(--color-primary)', fontWeight:700, fontSize:'1.25rem'}}>{line.product.price} {line.product.currency}</div>
-              <QuantitySelector value={line.qty} onChange={(v)=>dispatch(changeQty({productId: line.productId, qty:v}))} />
+              <strong style={{color:'var(--color-text)', fontSize:'1.1rem'}}>{item.name}</strong>
+              <div style={{color:'var(--color-primary)', fontWeight:700, fontSize:'1.25rem'}}>{item.price} OMR</div>
+              <QuantitySelector 
+                value={item.quantity} 
+                onChange={(v) => handleQuantityChange(productId, v)} 
+              />
             </div>
             <button 
               aria-label="remove" 
-              onClick={()=>dispatch(removeFromCart(line.productId))} 
+              onClick={() => handleRemoveItem(productId)} 
               style={{
                 background:'var(--color-danger)', 
                 border:'none', 
@@ -74,7 +105,7 @@ export default function Cart() {
           <Button variant="primary" onClick={() => navigate('/payment')} style={{display:'flex', alignItems:'center', gap:'0.5rem'}}>
             <MdPayment /> Continue To Payment
           </Button>
-          <Button variant="dark" onClick={()=>dispatch(clearCart())} style={{display:'flex', alignItems:'center', gap:'0.5rem'}}>
+          <Button variant="dark" onClick={handleClearCart} style={{display:'flex', alignItems:'center', gap:'0.5rem'}}>
             <MdDeleteSweep /> Clear Cart
           </Button>
         </div>

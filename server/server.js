@@ -6,6 +6,8 @@ import { fileURLToPath } from 'url'
 import { connectDB } from './config/db.js'
 import { productsRouter } from './routes/products.js'
 import { authRouter } from './routes/auth.js'
+import { cartRouter } from './routes/cart.js'
+import { ordersRouter } from './routes/orders.js'
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env') })
 
@@ -16,6 +18,8 @@ app.use(express.json())
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 app.use('/api/auth', authRouter)
 app.use('/api/products', productsRouter)
+app.use('/api/cart', cartRouter)
+app.use('/api/orders', ordersRouter)
 
 const PORT = process.env.APP_PORT || 5000
 

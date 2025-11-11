@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { MdShoppingCart, MdPerson, MdLogin } from 'react-icons/md'
 
 export default function Navbar() {
-  const cartCount = useSelector(s => s.cart.items.reduce((a,c)=>a+c.qty,0))
+  const cartCount = useSelector(s => s.cart.items.reduce((a,c)=>a+(c.quantity || 0), 0))
   const user = useSelector(s => s.auth.user)
   return (
     <header className="container" style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 1.25rem'}}>

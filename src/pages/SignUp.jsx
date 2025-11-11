@@ -3,6 +3,7 @@ import Input from '../components/common/Input'
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { register, clearError } from '../redux/slices/authSlice'
+import { fetchCart } from '../redux/slices/cartSlice'
 import { useNavigate, Link } from 'react-router-dom'
 import homeArt from '../assets/home_art_photo.png'
 import { MdPerson, MdEmail, MdLock } from 'react-icons/md'
@@ -34,6 +35,8 @@ export default function SignUp() {
     e.preventDefault()
     const result = await dispatch(register({ firstName, lastName, email, password }))
     if (result.type === 'auth/register/fulfilled') {
+      // Fetch user's cart after successful registration
+      await dispatch(fetchCart())
       navigate('/home')
     }
   }

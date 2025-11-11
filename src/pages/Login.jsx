@@ -2,6 +2,7 @@ import Button from '../components/common/Button'
 import Input from '../components/common/Input'
 import { useDispatch, useSelector } from 'react-redux'
 import { login, clearError } from '../redux/slices/authSlice'
+import { fetchCart } from '../redux/slices/cartSlice'
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import homeArt from '../assets/home_art_photo.png'
@@ -32,6 +33,8 @@ export default function Login() {
     e.preventDefault()
     const result = await dispatch(login({ email, password }))
     if (result.type === 'auth/login/fulfilled') {
+      // Fetch user's cart after successful login
+      await dispatch(fetchCart())
       navigate('/home')
     }
   }

@@ -4,12 +4,13 @@ import Button from './common/Button'
 import QuantitySelector from './common/QuantitySelector'
 import Toast from './common/Toast'
 import { useDispatch } from 'react-redux'
-import { addToCart } from '../redux/slices/cartSlice'
+import { addToCartAsync } from '../redux/slices/cartSlice'
 import { useNavigate } from 'react-router-dom'
 
 export default function ProductModal({ product, onClose }) {
   const [qty, setQty] = useState(1)
   const [toast, setToast] = useState(null)
+  const [loading, setLoading] = useState(false)
   const backdropRef = useRef(null)
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -26,15 +27,27 @@ export default function ProductModal({ product, onClose }) {
     if (e.target === backdropRef.current) onClose?.()
   }
 
-  const onAdd = () => {
-    dispatch(addToCart({ productId: product._id, qty }))
-    setToast(`${qty}x ${product.name} added to cart!`)
+  const onAdd = async () => {
+    setLoading(true)
+    const result = await dispatch(addToCartAsync({ productId: product._id, quantity: qty }))
+    setLoading(false)
+    if (result.type === 'cart/addToCart/fulfilled') {
+      setToast(`${qty}x ${product.name} added to cart!`)
+    } else {
+      setToast(`Error: ${result.payload || 'Failed to add to cart'}`)
+    }
   }
 
-  const onBuyNow = () => {
-    dispatch(addToCart({ productId: product._id, qty }))
-    onClose?.()
-    navigate('/cart')
+  const onBuyNow = async () => {
+    setLoading(true)
+    const result = await dispatch(addToCartAsync({ productId: product._id, quantity: qty }))
+    setLoading(false)
+    if (result.type === 'cart/addToCart/fulfilled') {
+      onClose?.()
+      navigate('/cart')
+    } else {
+      setToast(`Error: ${result.payload || 'Failed to add to cart'}`)
+    }
   }
 
   return (
@@ -77,8 +90,12 @@ export default function ProductModal({ product, onClose }) {
             <div style={{fontWeight:700, fontSize:'1.25rem', color:'var(--color-primary)'}}>{product.price} {product.currency}</div>
             <div style={{display:'flex', gap:16, alignItems:'center', flexWrap:'wrap'}}>
               <QuantitySelector value={qty} onChange={setQty} />
-              <Button variant="primary" onClick={onAdd}>Add to Cart</Button>
-              <Button variant="dark" onClick={onBuyNow}>Buy Now</Button>
+              <Button variant="primary" onClick={onAdd} disabled={loading}>
+                {loading ? 'Adding...' : 'Add to Cart'}
+              </Button>
+              <Button variant="dark" onClick={onBuyNow} disabled={loading}>
+                {loading ? 'Processing...' : 'Buy Now'}
+              </Button>
             </div>
           </div>
         </div>

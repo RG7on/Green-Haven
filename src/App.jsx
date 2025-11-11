@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/layout/Navbar'
+import ProtectedRoute from './components/ProtectedRoute'
 import Welcome from './pages/Welcome'
 import Login from './pages/Login'
 import SignUp from './pages/SignUp'
@@ -7,13 +8,6 @@ import Home from './pages/Home'
 import Cart from './pages/Cart'
 import Payment from './pages/Payment'
 import Profile from './pages/Profile'
-import { useSelector } from 'react-redux'
-
-function ProtectedRoute({ children }) {
-  const user = useSelector(s => s.auth.user)
-  if (!user) return <Navigate to="/login" replace />
-  return children
-}
 
 export default function App() {
   return (

@@ -2,7 +2,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useEffect, useState } from 'react'
 import Button from '../components/common/Button'
 import Toast from '../components/common/Toast'
-import { addToCart } from '../redux/slices/cartSlice'
+import { addToCartAsync } from '../redux/slices/cartSlice'
 import { selectProduct, loadProducts } from '../redux/slices/productsSlice'
 import ProductModal from '../components/ProductModal'
 
@@ -16,10 +16,12 @@ function ProductCard({ product, onAddToCart }) {
     }
   }
   
-  const handleQuickAdd = (e) => {
+  const handleQuickAdd = async (e) => {
     e.stopPropagation()
-    dispatch(addToCart({productId: product._id}))
-    onAddToCart?.(product.name)
+    const result = await dispatch(addToCartAsync({productId: product._id, quantity: 1}))
+    if (result.type === 'cart/addToCart/fulfilled') {
+      onAddToCart?.(product.name)
+    }
   }
   
   return (
