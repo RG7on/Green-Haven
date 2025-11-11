@@ -5,6 +5,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { connectDB } from './config/db.js'
 import { productsRouter } from './routes/products.js'
+import { authRouter } from './routes/auth.js'
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env') })
 
@@ -13,6 +14,7 @@ app.use(cors())
 app.use(express.json())
 
 app.get('/api/health', (req, res) => res.json({ ok: true }))
+app.use('/api/auth', authRouter)
 app.use('/api/products', productsRouter)
 
 const PORT = process.env.APP_PORT || 5000
