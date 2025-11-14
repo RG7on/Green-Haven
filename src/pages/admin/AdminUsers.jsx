@@ -155,6 +155,7 @@ function AdminUsers() {
                   <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text)' }}>User</th>
                   <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text)' }}>Email</th>
                   <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text)' }}>Joined</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text)' }}>Last Login</th>
                   <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text)' }}>Role</th>
                   <th style={{ padding: '1rem', textAlign: 'center', fontWeight: '600', color: 'var(--color-text)' }}>Actions</th>
                 </tr>
@@ -197,6 +198,20 @@ function AdminUsers() {
                         <MdCalendarToday size={16} color="var(--color-muted)" />
                         {new Date(user.createdAt).toLocaleDateString()}
                       </div>
+                    </td>
+                    <td style={{ padding: '1rem', color: 'var(--color-text)' }}>
+                      {user.lastLogin?.location ? (
+                        <div>
+                          <div style={{ fontSize: '0.875rem', color: 'var(--color-text)' }}>
+                            {user.lastLogin.location}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--color-muted)', marginTop: '0.25rem' }}>
+                            {user.lastLogin.date ? new Date(user.lastLogin.date).toLocaleString() : 'N/A'}
+                          </div>
+                        </div>
+                      ) : (
+                        <span style={{ color: 'var(--color-muted)', fontSize: '0.875rem' }}>Never logged in</span>
+                      )}
                     </td>
                     <td style={{ padding: '1rem' }}>
                       <span

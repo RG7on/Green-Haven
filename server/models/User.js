@@ -41,6 +41,11 @@ const userSchema = new mongoose.Schema({
     postalCode: { type: String, default: '' },
     country: { type: String, default: '' }
   },
+  lastLogin: {
+    date: { type: Date },
+    ip: { type: String },
+    location: { type: String }
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -2,6 +2,39 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import User from '../models/User.js'
 
+// Helper function to get location from IP
+const getLocationFromIP = async (ip) => {
+  try {
+    // For development/localhost, try to get real public IP
+    if (!ip || ip === '::1' || ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
+      // Get public IP first
+      try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json')
+        const ipData = await ipResponse.json()
+        ip = ipData.ip
+      } catch (error) {
+        console.error('Failed to get public IP:', error)
+        return 'Local Development'
+      }
+    }
+
+    // Get location from IP using ipgeolocation.io
+    const apiKey = 'dbc3a12f2fbf4f0cba71898ea3e43398'
+    const response = await fetch(`https://api.ipgeolocation.io/ipgeo?apiKey=${apiKey}&ip=${ip}`)
+    const data = await response.json()
+    
+    if (data.city && data.country_name) {
+      return `${data.city}, ${data.country_name}`
+    } else if (data.country_name) {
+      return data.country_name
+    }
+    return 'Unknown Location'
+  } catch (error) {
+    console.error('IP geolocation error:', error)
+    return 'Location Unavailable'
+  }
+}
+
 // Generate JWT token
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET || 'your-secret-key', {
@@ -124,6 +157,23 @@ export const loginUser = async (req, res) => {
         message: 'Invalid email or password'
       })
     }
+
+    // Get client IP address
+    const clientIP = req.headers['x-forwarded-for']?.split(',')[0] || 
+                     req.headers['x-real-ip'] || 
+                     req.connection.remoteAddress || 
+                     req.socket.remoteAddress
+
+    // Get location from IP
+    const location = await getLocationFromIP(clientIP)
+
+    // Update last login information
+    user.lastLogin = {
+      date: new Date(),
+      ip: clientIP,
+      location: location
+    }
+    await user.save()
 
     // Generate token
     const token = generateToken(user._id)
