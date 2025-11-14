@@ -2,14 +2,17 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import User from '../models/User.js'
 
-// Helper function to get location from IP
+// Helper function to get location from IP with timeout
 const getLocationFromIP = async (ip) => {
   try {
     // For development/localhost, try to get real public IP
     if (!ip || ip === '::1' || ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
-      // Get public IP first
+      // Get public IP first with timeout
       try {
-        const ipResponse = await fetch('https://api.ipify.org?format=json')
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 3000) // 3s timeout
+        const ipResponse = await fetch('https://api.ipify.org?format=json', { signal: controller.signal })
+        clearTimeout(timeout)
         const ipData = await ipResponse.json()
         ip = ipData.ip
       } catch (error) {
@@ -18,9 +21,12 @@ const getLocationFromIP = async (ip) => {
       }
     }
 
-    // Get location from IP using ipgeolocation.io
+    // Get location from IP using ipgeolocation.io with timeout
     const apiKey = 'dbc3a12f2fbf4f0cba71898ea3e43398'
-    const response = await fetch(`https://api.ipgeolocation.io/ipgeo?apiKey=${apiKey}&ip=${ip}`)
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 3000) // 3s timeout
+    const response = await fetch(`https://api.ipgeolocation.io/ipgeo?apiKey=${apiKey}&ip=${ip}`, { signal: controller.signal })
+    clearTimeout(timeout)
     const data = await response.json()
     
     if (data.city && data.country_name) {
@@ -164,16 +170,27 @@ export const loginUser = async (req, res) => {
                      req.connection.remoteAddress || 
                      req.socket.remoteAddress
 
-    // Get location from IP
-    const location = await getLocationFromIP(clientIP)
+    // Get location from IP (non-blocking - continues even if it fails)
+    let location = 'Unknown'
+    try {
+      location = await getLocationFromIP(clientIP)
+    } catch (error) {
+      console.error('Location lookup failed, continuing login:', error)
+      location = 'Location Unavailable'
+    }
 
     // Update last login information
-    user.lastLogin = {
-      date: new Date(),
-      ip: clientIP,
-      location: location
+    try {
+      user.lastLogin = {
+        date: new Date(),
+        ip: clientIP,
+        location: location
+      }
+      await user.save()
+    } catch (error) {
+      console.error('Failed to save last login info:', error)
+      // Continue login even if this fails
     }
-    await user.save()
 
     // Generate token
     const token = generateToken(user._id)
