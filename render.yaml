@@ -28,7 +28,7 @@ services:
         fromService:
           name: green-haven-backend
           type: web
-          property: host
+          property: url
     routes:
       - type: rewrite
         source: /*

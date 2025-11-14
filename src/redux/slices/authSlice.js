@@ -27,6 +27,13 @@ export const register = createAsyncThunk(
         body: JSON.stringify(userData),
       })
 
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Non-JSON response:', await response.text())
+        return rejectWithValue(`Server error: Expected JSON response but got ${contentType || 'unknown'}`)
+      }
+
       const data = await response.json()
 
       if (!response.ok) {
@@ -38,6 +45,7 @@ export const register = createAsyncThunk(
 
       return data.data
     } catch (error) {
+      console.error('Registration error:', error)
       return rejectWithValue(error.message || 'Network error')
     }
   }
@@ -56,6 +64,13 @@ export const login = createAsyncThunk(
         body: JSON.stringify(credentials),
       })
 
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Non-JSON response:', await response.text())
+        return rejectWithValue(`Server error: Expected JSON response but got ${contentType || 'unknown'}`)
+      }
+
       const data = await response.json()
 
       if (!response.ok) {
@@ -67,6 +82,7 @@ export const login = createAsyncThunk(
 
       return data.data
     } catch (error) {
+      console.error('Login error:', error)
       return rejectWithValue(error.message || 'Network error')
     }
   }

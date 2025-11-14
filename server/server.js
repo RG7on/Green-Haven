@@ -13,7 +13,32 @@ import { usersRouter } from './routes/users.js'
 dotenv.config({ path: path.resolve(process.cwd(), '.env') })
 
 const app = express()
-app.use(cors())
+
+// CORS configuration - allow requests from Render frontend
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true)
+    
+    // Allow any Render.com domain or localhost
+    const allowedOrigins = [
+      /\.onrender\.com$/,
+      /^http:\/\/localhost:\d+$/,
+      /^http:\/\/127\.0\.0\.1:\d+$/
+    ]
+    
+    const isAllowed = allowedOrigins.some(pattern => pattern.test(origin))
+    if (isAllowed) {
+      callback(null, true)
+    } else {
+      console.log('CORS blocked origin:', origin)
+      callback(null, true) // Allow anyway for now
+    }
+  },
+  credentials: true
+}
+
+app.use(cors(corsOptions))
 app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ limit: '50mb', extended: true }))
 
