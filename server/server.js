@@ -42,6 +42,14 @@ app.use(cors(corsOptions))
 app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ limit: '50mb', extended: true }))
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`)
+  console.log('Origin:', req.get('origin') || 'none')
+  console.log('Content-Type:', req.get('content-type') || 'none')
+  next()
+})
+
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 app.use('/api/auth', authRouter)
 app.use('/api/products', productsRouter)

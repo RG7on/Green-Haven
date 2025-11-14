@@ -3,6 +3,15 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 // Use proxy in development, full URL in production
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 
+// Debug: Log the API URL being used
+if (import.meta.env.DEV) {
+  console.log('API_URL:', API_URL)
+  console.log('VITE_API_URL env:', import.meta.env.VITE_API_URL)
+} else {
+  // In production, if no VITE_API_URL is set, we need to construct it
+  console.log('Production API_URL:', API_URL)
+}
+
 // Get user from localStorage
 const userFromStorage = localStorage.getItem('user')
   ? JSON.parse(localStorage.getItem('user'))
@@ -56,7 +65,10 @@ export const login = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
+      const url = `${API_URL}/auth/login`
+      console.log('Attempting login to:', url)
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,11 +76,17 @@ export const login = createAsyncThunk(
         body: JSON.stringify(credentials),
       })
 
+      console.log('Login response status:', response.status, response.statusText)
+      console.log('Login response URL:', response.url)
+
       // Check if response is JSON
       const contentType = response.headers.get('content-type')
       if (!contentType || !contentType.includes('application/json')) {
-        console.error('Non-JSON response:', await response.text())
-        return rejectWithValue(`Server error: Expected JSON response but got ${contentType || 'unknown'}`)
+        const text = await response.text()
+        console.error('Non-JSON response:', text)
+        console.error('Content-Type:', contentType)
+        console.error('Status:', response.status)
+        return rejectWithValue(`Server error: Expected JSON response but got ${contentType || 'unknown'}. Status: ${response.status}`)
       }
 
       const data = await response.json()
