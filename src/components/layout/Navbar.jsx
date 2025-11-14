@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
-import { MdShoppingCart, MdPerson, MdLogin, MdLogout, MdShoppingBag } from 'react-icons/md'
+import { MdShoppingCart, MdPerson, MdLogin, MdLogout, MdShoppingBag, MdAdminPanelSettings } from 'react-icons/md'
 import { logout } from '../../redux/slices/authSlice'
 import { clearCart } from '../../redux/slices/cartSlice'
 
@@ -22,6 +22,11 @@ export default function Navbar() {
       <nav style={{display:'flex', gap:'1.5rem', alignItems:'center'}}>
         {user ? (
           <>
+            {user.role === 'admin' && (
+              <Link to="/admin" style={{color:'var(--color-accent)', textDecoration:'none', fontWeight:500, display:'flex', alignItems:'center', gap:'0.35rem'}}>
+                <MdAdminPanelSettings style={{fontSize:'1.3rem'}} /> Admin
+              </Link>
+            )}
             <Link to="/orders" style={{color:'var(--color-text)', textDecoration:'none', fontWeight:500, display:'flex', alignItems:'center', gap:'0.35rem'}}>
               <MdShoppingBag style={{fontSize:'1.3rem'}} /> Orders
             </Link>

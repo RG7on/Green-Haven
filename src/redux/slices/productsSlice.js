@@ -2,7 +2,9 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { fetchProducts } from '../../services/api.js'
 
 export const loadProducts = createAsyncThunk('products/load', async () => {
-  return await fetchProducts()
+  const response = await fetchProducts()
+  // Handle both old format (array) and new format ({ success: true, data: [] })
+  return response.data || response
 })
 
 const initialState = { items: [], selected: null, status: 'idle', error: null }
