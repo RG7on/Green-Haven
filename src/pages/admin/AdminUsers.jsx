@@ -1,13 +1,31 @@
 import { useState, useEffect } from 'react'
-import { MdPerson, MdEmail, MdCalendarToday, MdAdminPanelSettings } from 'react-icons/md'
+import { MdPerson, MdEmail, MdCalendarToday, MdAdminPanelSettings, MdSearch } from 'react-icons/md'
 
 function AdminUsers() {
   const [users, setUsers] = useState([])
+  const [filteredUsers, setFilteredUsers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     fetchUsers()
   }, [])
+
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredUsers(users)
+    } else {
+      const term = searchTerm.toLowerCase()
+      setFilteredUsers(
+        users.filter(user => 
+          user.firstName.toLowerCase().includes(term) ||
+          user.lastName.toLowerCase().includes(term) ||
+          user.email.toLowerCase().includes(term) ||
+          `${user.firstName} ${user.lastName}`.toLowerCase().includes(term)
+        )
+      )
+    }
+  }, [searchTerm, users])
 
   const fetchUsers = async () => {
     try {
@@ -20,6 +38,7 @@ function AdminUsers() {
       })
       const data = await res.json()
       setUsers(data.data || [])
+      setFilteredUsers(data.data || [])
       setLoading(false)
     } catch (error) {
       console.error('Failed to fetch users:', error)
@@ -63,8 +82,32 @@ function AdminUsers() {
             Users Management
           </h1>
           <p style={{ color: 'var(--color-muted)' }}>
-            {users.length} registered user{users.length !== 1 ? 's' : ''}
+            {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} {searchTerm && `(filtered from ${users.length})`}
           </p>
+        </div>
+
+        {/* Search Box */}
+        <div className="card" style={{ padding: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <MdSearch size={20} color="var(--color-muted)" />
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input"
+              style={{ flex: 1, margin: 0 }}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="btn"
+                style={{ padding: '0.5rem 1rem' }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Users List */}
@@ -72,9 +115,11 @@ function AdminUsers() {
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-muted)' }}>
             Loading users...
           </div>
-        ) : users.length === 0 ? (
+        ) : filteredUsers.length === 0 ? (
           <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
-            <p style={{ color: 'var(--color-muted)' }}>No users found</p>
+            <p style={{ color: 'var(--color-muted)' }}>
+              {searchTerm ? 'No users match your search' : 'No users found'}
+            </p>
           </div>
         ) : (
           <div className="card" style={{ padding: 0, overflow: 'auto' }}>
@@ -89,7 +134,7 @@ function AdminUsers() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <tr key={user._id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                     <td style={{ padding: '1rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
