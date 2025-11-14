@@ -64,11 +64,11 @@ export const createOrder = async (req, res) => {
       0
     )
 
-    // Business Logic - Apply tax calculation (e.g., 10%)
-    const calculatedTax = calculatedSubtotal * 0.10
+    // Business Logic - Apply tax calculation (5%)
+    const calculatedTax = calculatedSubtotal * 0.05
 
-    // Business Logic - Calculate shipping (free over $50, else $5)
-    const calculatedShipping = calculatedSubtotal > 50 ? 0 : 5
+    // Business Logic - Flat shipping cost (3 OMR)
+    const calculatedShipping = 3
 
     const calculatedTotal = calculatedSubtotal + calculatedTax + calculatedShipping
 

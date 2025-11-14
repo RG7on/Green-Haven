@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema({
   },
   address: {
     fullName: { type: String, default: '' },
+    phoneNumber: { type: String, default: '' },
     address: { type: String, default: '' },
     city: { type: String, default: '' },
     postalCode: { type: String, default: '' },

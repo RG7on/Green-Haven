@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { createOrder } from '../redux/slices/ordersSlice'
+import { updateProfile } from '../redux/slices/authSlice'
 import mastercardLogo from '../assets/payment_method_logos/Mastercard_Symbol_1.png'
 import paypalLogo from '../assets/payment_method_logos/PayPal_Logo_Alternative_1.png'
 import checkoutPlant from '../assets/payment_method_logos/checkout_palnt.png'
@@ -13,9 +14,11 @@ export default function Payment() {
   const [processing, setProcessing] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [error, setError] = useState(null)
+  const [saveAsDefault, setSaveAsDefault] = useState(false)
   
   // Shipping address form
   const [fullName, setFullName] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [address, setAddress] = useState('')
   const [city, setCity] = useState('')
   const [postalCode, setPostalCode] = useState('')
@@ -24,11 +27,24 @@ export default function Payment() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const { items } = useSelector(s => s.cart)
+  const { user } = useSelector(s => s.auth)
+
+  // Autofill from user's saved address
+  useEffect(() => {
+    if (user?.address) {
+      setFullName(user.address.fullName || '')
+      setPhoneNumber(user.address.phoneNumber || '')
+      setAddress(user.address.address || '')
+      setCity(user.address.city || '')
+      setPostalCode(user.address.postalCode || '')
+      setCountry(user.address.country || 'Oman')
+    }
+  }, [user])
   
   // Calculate totals from cart items (backend format)
   const subtotal = items.reduce((acc, item) => acc + (item.price || 0) * (item.quantity || 0), 0)
-  const tax = subtotal * 0.05 // 10% tax
-  const shippingCost = subtotal > 50 ? 0 : 5 // Free shipping over 50 OMR
+  const tax = subtotal * 0.05 // 5% tax
+  const shippingCost = 3 // Flat 3 OMR shipping
   const total = subtotal + tax + shippingCost
 
   // Available payment methods shown as buttons below
@@ -41,13 +57,29 @@ export default function Payment() {
       return
     }
     
-    if (!fullName || !address || !city || !postalCode || !country) {
+    if (!fullName || !phoneNumber || !address || !city || !postalCode || !country) {
       setError('Please fill in all shipping address fields')
       return
     }
     
     setProcessing(true)
     setError(null)
+    
+    // Save address as default if checkbox is checked
+    if (saveAsDefault && user) {
+      await dispatch(updateProfile({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        address: {
+          fullName,
+          phoneNumber,
+          address,
+          city,
+          postalCode,
+          country
+        }
+      }))
+    }
     
     // Prepare order data matching backend schema
     const orderData = {
@@ -60,6 +92,7 @@ export default function Payment() {
       })),
       shippingAddress: {
         fullName,
+        phoneNumber,
         address,
         city,
         postalCode,
@@ -356,6 +389,14 @@ export default function Payment() {
                   placeholder="Enter your full name"
                 />
                 <Input 
+                  label="Phone Number" 
+                  value={phoneNumber} 
+                  onChange={e => setPhoneNumber(e.target.value)} 
+                  required
+                  type="tel"
+                  placeholder="Phone number"
+                />
+                <Input 
                   label="Address" 
                   value={address} 
                   onChange={e => setAddress(e.target.value)} 
@@ -385,6 +426,34 @@ export default function Payment() {
                   required
                   placeholder="Country"
                 />
+                
+                {/* Save as default checkbox */}
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  cursor: 'pointer',
+                  padding: '0.75rem',
+                  background: 'var(--color-surface)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--color-border)',
+                  marginTop: '0.5rem'
+                }}>
+                  <input 
+                    type="checkbox"
+                    checked={saveAsDefault}
+                    onChange={(e) => setSaveAsDefault(e.target.checked)}
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      cursor: 'pointer',
+                      accentColor: 'var(--color-primary)'
+                    }}
+                  />
+                  <span style={{fontSize: '0.95rem', color: 'var(--color-text)'}}>
+                    Save this as my default shipping address
+                  </span>
+                </label>
               </div>
             </div>
 

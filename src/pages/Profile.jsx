@@ -3,7 +3,7 @@ import Input from '../components/common/Input'
 import Button from '../components/common/Button'
 import { logout, updateProfile, clearError } from '../redux/slices/authSlice'
 import { useState, useEffect } from 'react'
-import { MdPerson, MdEmail, MdHome, MdLocationCity, MdLocationOn, MdPublic } from 'react-icons/md'
+import { MdPerson, MdEmail, MdHome, MdLocationCity, MdLocationOn, MdPublic, MdPhone } from 'react-icons/md'
 import { useNavigate } from 'react-router-dom'
 
 export default function Profile() {
@@ -13,6 +13,7 @@ export default function Profile() {
   const [firstName, setFirstName] = useState(user?.firstName || '')
   const [lastName, setLastName] = useState(user?.lastName || '')
   const [fullName, setFullName] = useState(user?.address?.fullName || '')
+  const [phoneNumber, setPhoneNumber] = useState(user?.address?.phoneNumber || '')
   const [address, setAddress] = useState(user?.address?.address || '')
   const [city, setCity] = useState(user?.address?.city || '')
   const [postalCode, setPostalCode] = useState(user?.address?.postalCode || '')
@@ -26,6 +27,7 @@ export default function Profile() {
       setFirstName(user.firstName || '')
       setLastName(user.lastName || '')
       setFullName(user.address?.fullName || '')
+      setPhoneNumber(user.address?.phoneNumber || '')
       setAddress(user.address?.address || '')
       setCity(user.address?.city || '')
       setPostalCode(user.address?.postalCode || '')
@@ -50,6 +52,7 @@ export default function Profile() {
       lastName,
       address: {
         fullName,
+        phoneNumber,
         address,
         city,
         postalCode,
@@ -204,6 +207,15 @@ export default function Profile() {
                     value={fullName} 
                     onChange={e=>setFullName(e.target.value)}
                     placeholder="Recipient's full name"
+                    disabled={status === 'loading'}
+                  />
+                  <Input 
+                    label="Phone Number" 
+                    icon={<MdPhone />} 
+                    value={phoneNumber} 
+                    onChange={e=>setPhoneNumber(e.target.value)}
+                    placeholder="Phone number"
+                    type="tel"
                     disabled={status === 'loading'}
                   />
                   <Input 

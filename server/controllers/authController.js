@@ -204,6 +204,7 @@ export const updateProfile = async (req, res) => {
     if (address) {
       user.address = {
         fullName: address.fullName?.trim() || '',
+        phoneNumber: address.phoneNumber?.trim() || '',
         address: address.address?.trim() || '',
         city: address.city?.trim() || '',
         postalCode: address.postalCode?.trim() || '',

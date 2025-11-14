@@ -225,7 +225,8 @@ export default function Orders() {
               gap:'1rem',
               marginBottom:'1.5rem',
               paddingBottom:'1rem',
-              borderBottom:'2px solid var(--color-primary)'
+              borderBottom:'2px solid var(--color-primary)',
+              position:'relative'
             }}>
               <div>
                 <p style={{color:'var(--color-muted)', fontSize:'0.8rem', marginBottom:'0.25rem', textTransform:'uppercase', letterSpacing:'0.5px'}}>
@@ -248,27 +249,22 @@ export default function Orders() {
                 </p>
               </div>
               <div style={{
+                position:'absolute',
+                top:'0.5rem',
+                right:0,
                 display:'flex',
                 alignItems:'center',
-                justifyContent:'flex-start',
-                gap:'0.5rem'
+                gap:'0.5rem',
+                padding:'0.6rem 1.2rem',
+                borderRadius:'var(--radius-md)',
+                background:'var(--color-surface-2)',
+                border:`2px solid ${statusColors[order.status]}`,
+                color: statusColors[order.status],
+                fontWeight:600,
+                fontSize:'0.9rem'
               }}>
-                <div style={{
-                  display:'flex',
-                  alignItems:'center',
-                  gap:'0.5rem',
-                  padding:'0.6rem 1.2rem',
-                  borderRadius:'var(--radius-md)',
-                  background:'var(--color-surface-2)',
-                  border:`2px solid ${statusColors[order.status]}`,
-                  color: statusColors[order.status],
-                  fontWeight:600,
-                  fontSize:'0.9rem',
-                  width:'fit-content'
-                }}>
-                  {statusIcons[order.status]}
-                  <span style={{textTransform:'capitalize'}}>{order.status}</span>
-                </div>
+                {statusIcons[order.status]}
+                <span style={{textTransform:'capitalize'}}>{order.status}</span>
               </div>
             </div>
 
