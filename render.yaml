@@ -16,10 +16,9 @@ services:
         value: 10000
     healthCheckPath: /api/health
 
-  # Frontend Service
-  - type: web
+  # Frontend Service (Static Site)
+  - type: static
     name: green-haven-frontend
-    runtime: static
     region: oregon
     plan: free
     buildCommand: npm install && npm run build
