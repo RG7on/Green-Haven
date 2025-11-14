@@ -50,6 +50,12 @@ app.use((req, res, next) => {
   next()
 })
 
+// Ensure all API responses have JSON content-type
+app.use('/api', (req, res, next) => {
+  res.setHeader('Content-Type', 'application/json')
+  next()
+})
+
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 app.use('/api/auth', authRouter)
 app.use('/api/products', productsRouter)

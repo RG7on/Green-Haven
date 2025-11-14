@@ -170,33 +170,21 @@ export const loginUser = async (req, res) => {
                      req.connection.remoteAddress || 
                      req.socket.remoteAddress
 
-    // Get location from IP (non-blocking - continues even if it fails)
-    let location = 'Unknown'
-    try {
-      location = await getLocationFromIP(clientIP)
-    } catch (error) {
-      console.error('Location lookup failed, continuing login:', error)
-      location = 'Location Unavailable'
-    }
-
-    // Update last login information
-    try {
+    // Get location asynchronously without blocking the response
+    getLocationFromIP(clientIP).then(location => {
       user.lastLogin = {
         date: new Date(),
         ip: clientIP,
         location: location
       }
-      await user.save()
-    } catch (error) {
-      console.error('Failed to save last login info:', error)
-      // Continue login even if this fails
-    }
+      user.save().catch(err => console.error('Failed to save last login info:', err))
+    }).catch(err => console.error('Location lookup failed:', err))
 
     // Generate token
     const token = generateToken(user._id)
 
-    // Return user data and token (excluding password)
-    res.status(200).json({
+    // Prepare response data
+    const responseData = {
       success: true,
       data: {
         id: user._id,
@@ -207,10 +195,16 @@ export const loginUser = async (req, res) => {
         address: user.address,
         token
       }
-    })
+    }
+
+    console.log('Sending login response for:', user.email)
+    
+    // Return user data and token (excluding password)
+    return res.status(200).json(responseData)
   } catch (error) {
     console.error('Login error:', error)
-    res.status(500).json({
+    console.error('Error stack:', error.stack)
+    return res.status(500).json({
       success: false,
       message: 'Server error during login',
       error: error.message
