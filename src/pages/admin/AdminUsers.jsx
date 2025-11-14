@@ -1,31 +1,39 @@
 import { useState, useEffect } from 'react'
-import { MdPerson, MdEmail, MdCalendarToday, MdAdminPanelSettings, MdSearch } from 'react-icons/md'
+import { MdPerson, MdEmail, MdCalendarToday, MdAdminPanelSettings, MdSearch, MdFilterList } from 'react-icons/md'
+import AdminLayout from '../../components/layout/AdminLayout'
 
 function AdminUsers() {
   const [users, setUsers] = useState([])
   const [filteredUsers, setFilteredUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [roleFilter, setRoleFilter] = useState('all')
 
   useEffect(() => {
     fetchUsers()
   }, [])
 
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredUsers(users)
-    } else {
+    let filtered = users
+
+    // Filter by search term
+    if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase()
-      setFilteredUsers(
-        users.filter(user => 
-          user.firstName.toLowerCase().includes(term) ||
-          user.lastName.toLowerCase().includes(term) ||
-          user.email.toLowerCase().includes(term) ||
-          `${user.firstName} ${user.lastName}`.toLowerCase().includes(term)
-        )
+      filtered = filtered.filter(user => 
+        user.firstName.toLowerCase().includes(term) ||
+        user.lastName.toLowerCase().includes(term) ||
+        user.email.toLowerCase().includes(term) ||
+        `${user.firstName} ${user.lastName}`.toLowerCase().includes(term)
       )
     }
-  }, [searchTerm, users])
+
+    // Filter by role
+    if (roleFilter !== 'all') {
+      filtered = filtered.filter(user => user.role === roleFilter)
+    }
+
+    setFilteredUsers(filtered)
+  }, [searchTerm, roleFilter, users])
 
   const fetchUsers = async () => {
     try {
@@ -74,39 +82,57 @@ function AdminUsers() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg)', padding: '2rem 1rem' }}>
-      <div className="container" style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ color: 'var(--color-primary)', fontSize: '2rem', marginBottom: '0.5rem' }}>
-            Users Management
-          </h1>
-          <p style={{ color: 'var(--color-muted)' }}>
-            {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} {searchTerm && `(filtered from ${users.length})`}
-          </p>
-        </div>
+    <AdminLayout>
+      {/* Header */}
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ color: 'var(--color-primary)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>
+          Users Management
+        </h1>
+        <p style={{ color: 'var(--color-muted)' }}>
+          {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} {searchTerm && `(filtered from ${users.length})`}
+        </p>
+      </div>
 
-        {/* Search Box */}
+        {/* Filters */}
         <div className="card" style={{ padding: '1rem', marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <MdSearch size={20} color="var(--color-muted)" />
-            <input
-              type="text"
-              placeholder="Search by name or email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input"
-              style={{ flex: 1, margin: 0 }}
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="btn"
-                style={{ padding: '0.5rem 1rem' }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            {/* Search Input */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 250px' }}>
+              <MdSearch size={20} color="var(--color-muted)" />
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input"
+                style={{ flex: 1, margin: 0 }}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="btn"
+                  style={{ padding: '0.5rem 1rem' }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            {/* Role Filter */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <MdFilterList size={20} color="var(--color-muted)" />
+              <span style={{ color: 'var(--color-text)', fontWeight: '500' }}>Role:</span>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="input"
+                style={{ width: 'auto', minWidth: '120px', margin: 0 }}
               >
-                Clear
-              </button>
-            )}
+                <option value="all">All Roles</option>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -213,8 +239,7 @@ function AdminUsers() {
             </table>
           </div>
         )}
-      </div>
-    </div>
+    </AdminLayout>
   )
 }
 

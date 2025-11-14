@@ -50,6 +50,7 @@ function ProductCard({ product, onAddToCart }) {
 
 export default function Home() {
   const { items: products, status, error, selected } = useSelector(s => s.products)
+  const user = useSelector(s => s.auth.user)
   const dispatch = useDispatch()
   const [toast, setToast] = useState(null)
   
@@ -61,13 +62,18 @@ export default function Home() {
     setToast(`${productName} added to cart!`)
   }
   
+  // Filter products - only show active products for non-admin users
+  const displayProducts = user?.role === 'admin' 
+    ? products 
+    : products.filter(p => p.isActive !== false)
+  
   return (
     <div className="container">
       <h1 className="display" style={{textAlign:'center', marginBottom:'1.5rem', color:'var(--color-primary)'}}>Greene Heaven</h1>
       {status === 'loading' && <p style={{textAlign:'center'}}>Loading products...</p>}
       {status === 'failed' && <p style={{textAlign:'center', color:'var(--color-danger)'}}>Failed: {error}</p>}
       <div style={{display:'flex', flexWrap:'wrap', gap:'1.5rem', justifyContent:'center'}}>
-        {products.map(p => <ProductCard key={p._id || p.id} product={p} onAddToCart={handleAddToCart} />)}
+        {displayProducts.map(p => <ProductCard key={p._id || p.id} product={p} onAddToCart={handleAddToCart} />)}
       </div>
       {selected && (
         <ProductModal product={selected} onClose={()=>dispatch(selectProduct(null))} />

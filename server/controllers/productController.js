@@ -5,9 +5,9 @@ import { Product } from '../models/Product.js'
 // @access  Public (filters to active only for non-admin)
 export const getAllProducts = async (req, res) => {
   try {
-    // If user is admin, show all products; otherwise only active ones
-    const filter = req.user?.role === 'admin' ? {} : { isActive: true }
-    const products = await Product.find(filter).lean()
+    // Always show all products (both active and inactive)
+    // Frontend will handle filtering based on user role
+    const products = await Product.find({}).lean()
     
     res.status(200).json({
       success: true,

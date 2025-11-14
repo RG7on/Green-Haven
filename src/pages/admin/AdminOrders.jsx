@@ -1,23 +1,44 @@
 import { useState, useEffect } from 'react'
-import { MdFilterList } from 'react-icons/md'
+import { MdFilterList, MdSearch } from 'react-icons/md'
+import AdminLayout from '../../components/layout/AdminLayout'
 
 function AdminOrders() {
   const [orders, setOrders] = useState([])
   const [filteredOrders, setFilteredOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('all')
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     fetchOrders()
   }, [])
 
   useEffect(() => {
-    if (statusFilter === 'all') {
-      setFilteredOrders(orders)
-    } else {
-      setFilteredOrders(orders.filter(order => order.status === statusFilter))
+    let filtered = orders
+
+    // Filter by search term
+    if (searchTerm.trim() !== '') {
+      const term = searchTerm.toLowerCase()
+      filtered = filtered.filter(order => {
+        const userName = `${order.user?.firstName || ''} ${order.user?.lastName || ''}`.toLowerCase()
+        const userEmail = (order.user?.email || '').toLowerCase()
+        const phone = (order.shippingAddress?.phone || '').toLowerCase()
+        const orderId = (order._id || '').toLowerCase()
+        
+        return userName.includes(term) || 
+               userEmail.includes(term) || 
+               phone.includes(term) || 
+               orderId.includes(term)
+      })
     }
-  }, [statusFilter, orders])
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order => order.status === statusFilter)
+    }
+
+    setFilteredOrders(filtered)
+  }, [statusFilter, searchTerm, orders])
 
   const fetchOrders = async () => {
     try {
@@ -73,38 +94,60 @@ function AdminOrders() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg)', padding: '2rem 1rem' }}>
-      <div className="container" style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ color: 'var(--color-primary)', fontSize: '2rem', marginBottom: '0.5rem' }}>
-            Orders Management
-          </h1>
-          <p style={{ color: 'var(--color-muted)' }}>
-            {filteredOrders.length} order{filteredOrders.length !== 1 ? 's' : ''}
-          </p>
-        </div>
+    <AdminLayout>
+      {/* Header */}
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ color: 'var(--color-primary)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>
+          Orders Management
+        </h1>
+        <p style={{ color: 'var(--color-muted)' }}>
+          {filteredOrders.length} order{filteredOrders.length !== 1 ? 's' : ''}
+        </p>
+      </div>
 
         {/* Filters */}
         <div className="card" style={{ padding: '1rem', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            {/* Search Input */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 250px' }}>
+              <MdSearch size={20} color="var(--color-muted)" />
+              <input
+                type="text"
+                placeholder="Search by name, email, phone, or order ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input"
+                style={{ flex: 1, margin: 0 }}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="btn"
+                  style={{ padding: '0.5rem 1rem' }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            {/* Status Filter */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <MdFilterList size={20} color="var(--color-muted)" />
-              <span style={{ color: 'var(--color-text)', fontWeight: '500' }}>Filter by status:</span>
+              <span style={{ color: 'var(--color-text)', fontWeight: '500' }}>Status:</span>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="input"
+                style={{ width: 'auto', minWidth: '150px', margin: 0 }}
+              >
+                <option value="all">All Orders</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
             </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="input"
-              style={{ width: 'auto', minWidth: '150px' }}
-            >
-              <option value="all">All Orders</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
           </div>
         </div>
 
@@ -195,8 +238,7 @@ function AdminOrders() {
             ))}
           </div>
         )}
-      </div>
-    </div>
+    </AdminLayout>
   )
 }
 

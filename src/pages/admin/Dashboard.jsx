@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MdPeople, MdShoppingCart, MdInventory, MdAttachMoney } from 'react-icons/md'
+import AdminLayout from '../../components/layout/AdminLayout'
 
 function Dashboard() {
   const navigate = useNavigate()
   const [stats, setStats] = useState({
     users: { total: 0, recent: 0 },
     orders: { total: 0, pending: 0, revenue: 0 },
+    products: { total: 0, active: 0 },
     loading: true
   })
 
@@ -32,6 +34,14 @@ function Dashboard() {
       })
       const orderStatsData = await orderStatsRes.json()
 
+      // Fetch products
+      const productsRes = await fetch('/api/products', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const productsData = await productsRes.json()
+      const productsArray = productsData.data || productsData
+      const activeProducts = productsArray.filter(p => p.isActive !== false)
+
       setStats({
         users: {
           total: userStatsData.data?.totalUsers || 0,
@@ -41,6 +51,10 @@ function Dashboard() {
           total: orderStatsData.data?.totalOrders || 0,
           pending: orderStatsData.data?.ordersByStatus?.pending || 0,
           revenue: orderStatsData.data?.totalRevenue || 0
+        },
+        products: {
+          total: productsArray.length,
+          active: activeProducts.length
         },
         loading: false
       })
@@ -69,8 +83,8 @@ function Dashboard() {
     },
     {
       title: 'Products',
-      value: '-',
-      subtitle: 'Manage inventory',
+      value: stats.products.total,
+      subtitle: `${stats.products.active} active`,
       icon: MdInventory,
       color: '#FF9800',
       onClick: () => navigate('/admin/products')
@@ -86,46 +100,13 @@ function Dashboard() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg)', padding: '2rem 1rem' }}>
-      <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ color: 'var(--color-primary)', fontSize: '2rem', marginBottom: '0.5rem' }}>
-            Admin Dashboard
-          </h1>
-          <p style={{ color: 'var(--color-muted)' }}>
-            Manage your Green Haven store
-          </p>
+    <AdminLayout>
+      {/* Stats Grid */}
+      {stats.loading ? (
+        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-muted)' }}>
+          Loading statistics...
         </div>
-
-        {/* Quick Actions */}
-        <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => navigate('/admin/products')}
-            className="btn btn-primary"
-          >
-            Manage Products
-          </button>
-          <button
-            onClick={() => navigate('/admin/orders')}
-            className="btn"
-          >
-            View Orders
-          </button>
-          <button
-            onClick={() => navigate('/admin/users')}
-            className="btn"
-          >
-            View Users
-          </button>
-        </div>
-
-        {/* Stats Grid */}
-        {stats.loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-muted)' }}>
-            Loading statistics...
-          </div>
-        ) : (
+      ) : (
           <div
             style={{
               display: 'grid',
@@ -142,16 +123,9 @@ function Dashboard() {
                   style={{
                     padding: '1.5rem',
                     cursor: card.onClick ? 'pointer' : 'default',
-                    transition: 'transform 0.2s',
                     border: '1px solid var(--color-border)'
                   }}
                   onClick={card.onClick}
-                  onMouseEnter={(e) => {
-                    if (card.onClick) e.currentTarget.style.transform = 'translateY(-4px)'
-                  }}
-                  onMouseLeave={(e) => {
-                    if (card.onClick) e.currentTarget.style.transform = 'translateY(0)'
-                  }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                     <div
@@ -184,8 +158,7 @@ function Dashboard() {
             })}
           </div>
         )}
-      </div>
-    </div>
+    </AdminLayout>
   )
 }
 
