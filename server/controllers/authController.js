@@ -73,6 +73,7 @@ export const registerUser = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        address: user.address,
         token
       }
     })
@@ -122,7 +123,7 @@ export const loginUser = async (req, res) => {
     // Generate token
     const token = generateToken(user._id)
 
-    // Return user data (excluding password)
+    // Return user data and token (excluding password)
     res.status(200).json({
       success: true,
       data: {
@@ -130,6 +131,7 @@ export const loginUser = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        address: user.address,
         token
       }
     })
@@ -168,7 +170,7 @@ export const getCurrentUser = async (req, res) => {
 // @access  Private (requires token)
 export const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName } = req.body
+    const { firstName, lastName, address } = req.body
 
     // Validation - Check if fields are provided
     if (!firstName || !lastName) {
@@ -197,6 +199,18 @@ export const updateProfile = async (req, res) => {
 
     user.firstName = firstName.trim()
     user.lastName = lastName.trim()
+    
+    // Update address if provided
+    if (address) {
+      user.address = {
+        fullName: address.fullName?.trim() || '',
+        address: address.address?.trim() || '',
+        city: address.city?.trim() || '',
+        postalCode: address.postalCode?.trim() || '',
+        country: address.country?.trim() || ''
+      }
+    }
+    
     await user.save()
 
     // Return updated user data (excluding password)
@@ -206,7 +220,8 @@ export const updateProfile = async (req, res) => {
         id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.email
+        email: user.email,
+        address: user.address
       }
     })
   } catch (error) {
