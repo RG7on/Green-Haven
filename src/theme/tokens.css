@@ -47,7 +47,10 @@
 
 /* Generic UI */
 .card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
-.btn { font-family: var(--font-display); border-radius: 999px; border: 1px solid var(--color-border); padding: 0.75rem 1.5rem; cursor: pointer; background: #dbe6c8; color: var(--color-text); }
+.btn { font-family: var(--font-display); border-radius: 999px; border: 1px solid var(--color-border); padding: 0.75rem 1.5rem; cursor: pointer; background: #dbe6c8; color: var(--color-text); transition: all 0.2s ease; }
+.btn:hover { background: #c9d9b3; color: var(--color-text); }
 .btn-primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.btn-primary:hover { background: #2d5326; color: #fff; }
 .btn-dark { background: var(--color-accent); color: #fff; border-color: #000; }
+.btn-dark:hover { background: #1a1a1a; color: #fff; }
 .input { width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 2px solid var(--color-border); background: #fff; font-size: 1rem; font-family: var(--font-display); }

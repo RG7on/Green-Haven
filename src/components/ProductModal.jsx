@@ -88,12 +88,12 @@ export default function ProductModal({ product, onClose }) {
             <h2 className="display" style={{color:'var(--color-primary)'}}>{product.name}</h2>
             <p style={{color:'var(--color-text)'}}>{product.description}</p>
             <div style={{fontWeight:700, fontSize:'1.25rem', color:'var(--color-primary)'}}>{product.price} {product.currency}</div>
-            <div style={{display:'flex', gap:16, alignItems:'center', flexWrap:'wrap'}}>
-              <QuantitySelector value={qty} onChange={setQty} />
-              <Button variant="primary" onClick={onAdd} disabled={loading}>
+            <QuantitySelector value={qty} onChange={setQty} />
+            <div style={{display:'flex', gap:'0.75rem', alignItems:'center'}}>
+              <Button variant="primary" onClick={onAdd} disabled={loading} style={{flex: 1}}>
                 {loading ? 'Adding...' : 'Add to Cart'}
               </Button>
-              <Button variant="dark" onClick={onBuyNow} disabled={loading}>
+              <Button variant="dark" onClick={onBuyNow} disabled={loading} style={{flex: 1}}>
                 {loading ? 'Processing...' : 'Buy Now'}
               </Button>
             </div>
