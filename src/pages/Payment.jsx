@@ -17,6 +17,8 @@ export default function Payment() {
   const [showSuccess, setShowSuccess] = useState(false)
   const [error, setError] = useState(null)
   const [saveAsDefault, setSaveAsDefault] = useState(false)
+  const [deliveryDate, setDeliveryDate] = useState('')
+  const [deliveryOption, setDeliveryOption] = useState('standard') // 'standard' or 'express'
   
   // Shipping address data
   const [addressData, setAddressData] = useState({
@@ -431,6 +433,100 @@ export default function Payment() {
                     Save this as my default shipping address
                   </span>
                 </label>
+                
+              {/* Delivery Options - Radio Buttons */}
+              <div style={{marginTop: '1.5rem'}}>
+                <h3 style={{fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.75rem'}}>
+                  Delivery Speed
+                </h3>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '0.75rem'}}>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    cursor: 'pointer',
+                    padding: '0.75rem',
+                    background: deliveryOption === 'standard' ? 'var(--color-surface-2)' : 'var(--color-surface)',
+                    borderRadius: 'var(--radius-md)',
+                    border: deliveryOption === 'standard' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)'
+                  }}>
+                    <input 
+                      type="radio"
+                      name="deliveryOption"
+                      value="standard"
+                      checked={deliveryOption === 'standard'}
+                      onChange={(e) => setDeliveryOption(e.target.value)}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer',
+                        accentColor: 'var(--color-primary)'
+                      }}
+                    />
+                    <span style={{fontSize: '0.95rem', color: 'var(--color-text)', flex: 1}}>
+                      Standard Delivery (3-5 business days) - Free
+                    </span>
+                  </label>
+                  
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    cursor: 'pointer',
+                    padding: '0.75rem',
+                    background: deliveryOption === 'express' ? 'var(--color-surface-2)' : 'var(--color-surface)',
+                    borderRadius: 'var(--radius-md)',
+                    border: deliveryOption === 'express' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)'
+                  }}>
+                    <input 
+                      type="radio"
+                      name="deliveryOption"
+                      value="express"
+                      checked={deliveryOption === 'express'}
+                      onChange={(e) => setDeliveryOption(e.target.value)}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer',
+                        accentColor: 'var(--color-primary)'
+                      }}
+                    />
+                    <span style={{fontSize: '0.95rem', color: 'var(--color-text)', flex: 1}}>
+                      Express Delivery (1-2 business days) - 5 OMR
+                    </span>
+                  </label>
+                </div>
+              </div>
+              
+              {/* Preferred Delivery Date - Date Input */}
+              <div style={{marginTop: '1.5rem'}}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: 'var(--color-text)',
+                  marginBottom: '0.5rem'
+                }}>
+                  Preferred Delivery Date (Optional)
+                </label>
+                <input 
+                  type="date"
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                  min={new Date(Date.now() + 86400000).toISOString().split('T')[0]} // Tomorrow minimum
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border)',
+                    fontSize: '0.95rem',
+                    fontFamily: 'inherit'
+                  }}
+                />
+                <p style={{fontSize: '0.85rem', color: 'var(--color-muted)', marginTop: '0.25rem'}}>
+                  Select your preferred delivery date
+                </p>
+              </div>
             </div>
 
             {/* Payment Method Section */}

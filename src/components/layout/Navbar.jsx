@@ -1,14 +1,16 @@
 import { useSelector, useDispatch } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
-import { MdShoppingCart, MdPerson, MdLogin, MdLogout, MdShoppingBag } from 'react-icons/md'
+import { MdShoppingCart, MdPerson, MdLogin, MdLogout, MdShoppingBag, MdSearch } from 'react-icons/md'
 import { logout } from '../../redux/slices/authSlice'
 import { clearCart } from '../../redux/slices/cartSlice'
+import { useState } from 'react'
 
 export default function Navbar() {
   const cartCount = useSelector(s => s.cart.items.reduce((a,c)=>a+(c.quantity || 0), 0))
   const user = useSelector(s => s.auth.user)
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState('')
 
   const handleLogout = () => {
     dispatch(logout())
@@ -16,9 +18,54 @@ export default function Navbar() {
     navigate('/')
   }
 
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      // Navigate to home with search query (could be implemented to filter products)
+      navigate(`/home?search=${encodeURIComponent(searchQuery)}`)
+    }
+  }
+
   return (
-    <header className="container" style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 1.25rem'}}>
+    <header className="container" style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 1.25rem', gap:'1rem', flexWrap:'wrap'}}>
       <Link to="/home" style={{fontFamily:'var(--font-display)', fontSize:'1.8rem', color:'var(--color-primary)', textDecoration:'none'}}>Greene Heaven</Link>
+      
+      {/* Search Box */}
+      {user && (
+        <form onSubmit={handleSearch} style={{flex:'1', maxWidth:'400px', position:'relative'}}>
+          <input
+            type="text"
+            placeholder="Search plants..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width:'100%',
+              padding:'0.6rem 2.5rem 0.6rem 1rem',
+              borderRadius:'var(--radius-md)',
+              border:'1px solid var(--color-border)',
+              fontSize:'0.95rem',
+              outline:'none'
+            }}
+          />
+          <button
+            type="submit"
+            style={{
+              position:'absolute',
+              right:'0.5rem',
+              top:'50%',
+              transform:'translateY(-50%)',
+              background:'none',
+              border:'none',
+              cursor:'pointer',
+              color:'var(--color-primary)',
+              padding:'0.25rem'
+            }}
+          >
+            <MdSearch style={{fontSize:'1.5rem'}} />
+          </button>
+        </form>
+      )}
+      
       <nav style={{display:'flex', gap:'1.5rem', alignItems:'center'}}>
         {user ? (
           <>

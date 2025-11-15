@@ -4,7 +4,7 @@ import Button from '../components/common/Button'
 import AddressForm from '../components/common/AddressForm'
 import { logout, updateProfile, clearError } from '../redux/slices/authSlice'
 import { useState, useEffect } from 'react'
-import { MdPerson, MdEmail } from 'react-icons/md'
+import { MdPerson, MdEmail, MdLocationOn } from 'react-icons/md'
 import { useNavigate } from 'react-router-dom'
 
 export default function Profile() {
@@ -13,6 +13,7 @@ export default function Profile() {
   const navigate = useNavigate()
   const [firstName, setFirstName] = useState(user?.firstName || '')
   const [lastName, setLastName] = useState(user?.lastName || '')
+  const [location, setLocation] = useState('Loading...')
   const [addressData, setAddressData] = useState({
     fullName: user?.address?.fullName || '',
     phone: user?.address?.phone || '',
@@ -23,6 +24,22 @@ export default function Profile() {
   })
   const [successMessage, setSuccessMessage] = useState('')
   const [activeTab, setActiveTab] = useState('personal') // 'personal' or 'address'
+
+  // Fetch geolocation on component mount
+  useEffect(() => {
+    const fetchLocation = async () => {
+      try {
+        const response = await fetch('https://api.ipgeolocation.io/ipgeo?apiKey=fa0ecfe3b2c64f4782af54eb0cc0581c')
+        const data = await response.json()
+        const locationString = `${data.city}, ${data.country_name}`
+        setLocation(locationString)
+      } catch (err) {
+        console.error('Failed to fetch location:', err)
+        setLocation('Location unavailable')
+      }
+    }
+    fetchLocation()
+  }, [])
 
   // Update form when user data changes
   useEffect(() => {
@@ -194,6 +211,14 @@ export default function Profile() {
                     icon={<MdEmail />} 
                     value={user.email} 
                     type="email" 
+                    disabled
+                  />
+                </div>
+                <div style={{opacity: 0.6, pointerEvents: 'none'}}>
+                  <Input 
+                    label="Login Location"
+                    icon={<MdLocationOn />} 
+                    value={location} 
                     disabled
                   />
                 </div>
