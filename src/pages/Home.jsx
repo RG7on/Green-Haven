@@ -1,5 +1,6 @@
 import { useSelector, useDispatch } from 'react-redux'
 import { useEffect, useState } from 'react'
+import { MdShoppingCart, MdRemoveRedEye } from 'react-icons/md'
 import Button from '../components/common/Button'
 import Toast from '../components/common/Toast'
 import { addToCartAsync } from '../redux/slices/cartSlice'
@@ -27,21 +28,117 @@ function ProductCard({ product, onAddToCart }) {
   return (
     <div
       className="card"
-      role="button"
-      tabIndex={0}
-      onKeyDown={onKeyOpen}
-      onClick={openDetails}
-      style={{padding:'1rem', borderRadius:'16px', width:'min(100%, 320px)', cursor:'pointer'}}
+      style={{
+        padding:'0',
+        borderRadius:'16px',
+        width:'min(100%, 320px)',
+        overflow:'hidden',
+        position:'relative'
+      }}
     >
-      <div style={{background:'#fff', borderRadius:'12px', padding:'0.5rem', border:'1px solid var(--color-border)'}}>
-        <img src={product.image || '/vite.svg'} alt={product.name} style={{width:'100%', height:220, objectFit:'contain'}} />
+      {/* Image Container */}
+      <div 
+        role="button"
+        tabIndex={0}
+        onKeyDown={onKeyOpen}
+        onClick={openDetails}
+        style={{
+          position:'relative',
+          background:'#fff',
+          height:240,
+          cursor:'pointer',
+          overflow:'hidden'
+        }}
+      >
+        <img 
+          src={product.image || '/vite.svg'} 
+          alt={product.name} 
+          style={{
+            width:'100%',
+            height:'100%',
+            objectFit:'cover'
+          }} 
+        />
+        
+        {/* Quick View Overlay */}
+        <div 
+          style={{
+            position:'absolute',
+            top:0,
+            left:0,
+            right:0,
+            bottom:0,
+            background:'rgba(0,0,0,0.4)',
+            display:'flex',
+            alignItems:'center',
+            justifyContent:'center',
+            opacity:0,
+            transition:'opacity 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '0'}
+        >
+          <Button 
+            onClick={(e) => { e.stopPropagation(); openDetails() }}
+            style={{
+              background:'white',
+              color:'var(--color-primary)',
+              padding:'0.75rem 1.5rem',
+              fontWeight:600,
+              display:'flex',
+              alignItems:'center',
+              gap:'0.5rem'
+            }}
+          >
+            <MdRemoveRedEye style={{fontSize:'1.2rem'}} />
+            View Details
+          </Button>
+        </div>
       </div>
-      <div className="stack" style={{padding:'0.75rem'}}>
-        <div style={{minHeight:56, color:'var(--color-text)'}}>{product.name}</div>
-        <div style={{fontWeight:700, color:'var(--color-primary)'}}>{product.price} {product.currency}</div>
-        <div style={{display:'flex', gap:8}}>
-          <Button onClick={(e)=>{ e.stopPropagation(); openDetails() }}>View Details</Button>
-          <Button aria-label="quick add" onClick={handleQuickAdd}>+ Cart</Button>
+
+      {/* Product Info */}
+      <div style={{padding:'1rem'}}>
+        <h3 style={{
+          fontSize:'1rem',
+          fontWeight:600,
+          color:'var(--color-text)',
+          marginBottom:'0.5rem',
+          minHeight:'3rem',
+          lineHeight:1.4
+        }}>
+          {product.name}
+        </h3>
+        
+        <div style={{
+          display:'flex',
+          alignItems:'center',
+          justifyContent:'space-between',
+          marginTop:'0.75rem'
+        }}>
+          <div style={{
+            fontWeight:700,
+            fontSize:'1.25rem',
+            color:'var(--color-primary)'
+          }}>
+            {product.price} {product.currency}
+          </div>
+          
+          <Button 
+            onClick={handleQuickAdd}
+            style={{
+              background:'var(--color-primary)',
+              color:'white',
+              padding:'0.6rem 1rem',
+              display:'flex',
+              alignItems:'center',
+              gap:'0.5rem',
+              fontWeight:600,
+              fontSize:'0.9rem'
+            }}
+          >
+            <MdShoppingCart style={{fontSize:'1.1rem'}} />
+            Add
+          </Button>
         </div>
       </div>
     </div>

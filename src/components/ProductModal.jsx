@@ -81,8 +81,8 @@ export default function ProductModal({ product, onClose }) {
           <MdClose style={{fontSize:'1.75rem', fontWeight:800}} />
         </button>
         <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', alignItems:'center'}}>
-          <div className="card" style={{padding:'1rem', background:'#fff'}}>
-            <img src={product.image || '/vite.svg'} alt="" style={{width:'100%', objectFit:'contain'}} />
+          <div className="card" style={{padding:'1rem', background:'#fff', height:'400px', display:'flex', alignItems:'center', justifyContent:'center'}}>
+            <img src={product.image || '/vite.svg'} alt="" style={{width:'100%', height:'100%', objectFit:'cover', borderRadius:'8px'}} />
           </div>
           <div className="stack">
             <h2 className="display" style={{color:'var(--color-primary)'}}>{product.name}</h2>

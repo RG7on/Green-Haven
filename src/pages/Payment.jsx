@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { createOrder } from '../redux/slices/ordersSlice'
 import { updateProfile } from '../redux/slices/authSlice'
+import { clearCart } from '../redux/slices/cartSlice'
 import mastercardLogo from '../assets/payment_method_logos/Mastercard_Symbol_1.png'
 import paypalLogo from '../assets/payment_method_logos/PayPal_Logo_Alternative_1.png'
 import checkoutPlant from '../assets/payment_method_logos/checkout_palnt.png'
@@ -124,6 +125,9 @@ export default function Payment() {
     setProcessing(false)
     
     if (result.type === 'orders/createOrder/fulfilled') {
+      // Clear the cart immediately
+      dispatch(clearCart())
+      
       setShowSuccess(true)
       
       // Redirect to orders page after 3 seconds
