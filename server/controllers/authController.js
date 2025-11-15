@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import User from '../models/User.js'
+import { validateOmanAddress, getGovernorateById, getWilayatById } from '../utils/omanLocations.js'
 
 // Helper function to get location from IP with timeout
 const getLocationFromIP = async (ip) => {
@@ -325,13 +326,44 @@ export const updateProfile = async (req, res) => {
     
     // Update address if provided
     if (address) {
-      user.address = {
-        fullName: address.fullName?.trim() || '',
-        phoneNumber: address.phoneNumber?.trim() || '',
-        address: address.address?.trim() || '',
-        city: address.city?.trim() || '',
-        postalCode: address.postalCode?.trim() || '',
-        country: address.country?.trim() || ''
+      // Check if new Oman format is being used
+      if (address.governorateId && address.wilayatId) {
+        const addressErrors = validateOmanAddress(address)
+        if (addressErrors.length > 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid address',
+            errors: addressErrors
+          })
+        }
+
+        // Enrich with names
+        const governorate = getGovernorateById(address.governorateId)
+        const wilayat = getWilayatById(address.governorateId, address.wilayatId)
+        
+        user.address = {
+          ...user.address, // Keep legacy fields if they exist
+          fullName: address.fullName?.trim() || '',
+          phone: address.phone?.trim() || '',
+          governorateId: address.governorateId,
+          governorateName: governorate ? governorate.name : '',
+          wilayatId: address.wilayatId,
+          wilayatName: wilayat ? wilayat.name : '',
+          houseNumber: address.houseNumber?.trim() || '',
+          additionalInfo: address.additionalInfo?.trim() || '',
+          country: 'Oman'
+        }
+      } else {
+        // Legacy address format
+        user.address = {
+          ...user.address,
+          fullName: address.fullName?.trim() || '',
+          phoneNumber: address.phoneNumber?.trim() || '',
+          address: address.address?.trim() || '',
+          city: address.city?.trim() || '',
+          postalCode: address.postalCode?.trim() || '',
+          country: address.country?.trim() || ''
+        }
       }
     }
     

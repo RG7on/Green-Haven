@@ -1,6 +1,7 @@
 import Order from '../models/Order.js'
 import Cart from '../models/Cart.js'
 import { Product } from '../models/Product.js'
+import { validateOmanAddress, getGovernorateById, getWilayatById } from '../utils/omanLocations.js'
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -30,6 +31,38 @@ export const createOrder = async (req, res) => {
         success: false,
         message: 'Shipping address is required'
       })
+    }
+
+    // Validate new Oman address format if provided
+    if (shippingAddress.governorateId && shippingAddress.wilayatId) {
+      const addressErrors = validateOmanAddress(shippingAddress)
+      if (addressErrors.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid shipping address',
+          errors: addressErrors
+        })
+      }
+
+      // Enrich with governorate and wilayat names
+      const governorate = getGovernorateById(shippingAddress.governorateId)
+      const wilayat = getWilayatById(shippingAddress.governorateId, shippingAddress.wilayatId)
+      
+      if (governorate) {
+        shippingAddress.governorateName = governorate.name
+      }
+      if (wilayat) {
+        shippingAddress.wilayatName = wilayat.name
+      }
+      shippingAddress.country = 'Oman'
+    } else {
+      // Legacy address validation
+      if (!shippingAddress.fullName || !shippingAddress.address || !shippingAddress.city) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please provide complete shipping address'
+        })
+      }
     }
 
     if (!paymentMethod) {
@@ -306,6 +339,109 @@ export const getOrderStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while fetching order statistics',
+      error: error.message
+    })
+  }
+}
+
+// @desc    Confirm delivery by user
+// @route   PUT /api/orders/:id/confirm-delivery
+// @access  Private
+export const confirmDelivery = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      })
+    }
+
+    // Verify order belongs to user
+    if (order.user.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to confirm this order'
+      })
+    }
+
+    // Verify order is delivered
+    if (order.status !== 'delivered') {
+      return res.status(400).json({
+        success: false,
+        message: 'Order must be delivered before confirming'
+      })
+    }
+
+    // Update delivery confirmation
+    order.deliveryConfirmed = true
+    order.deliveryConfirmedAt = new Date()
+    await order.save()
+
+    res.status(200).json({
+      success: true,
+      data: order
+    })
+  } catch (error) {
+    console.error('Confirm delivery error:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Server error while confirming delivery',
+      error: error.message
+    })
+  }
+}
+
+// @desc    Submit feedback for order
+// @route   PUT /api/orders/:id/feedback
+// @access  Private
+export const submitFeedback = async (req, res) => {
+  try {
+    const { rating, comment } = req.body
+
+    const order = await Order.findById(req.params.id)
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      })
+    }
+
+    // Verify order belongs to user
+    if (order.user.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to provide feedback for this order'
+      })
+    }
+
+    // Validate rating
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rating must be between 1 and 5'
+      })
+    }
+
+    // Update feedback
+    order.feedback = {
+      rating,
+      comment: comment || '',
+      createdAt: new Date()
+    }
+    await order.save()
+
+    res.status(200).json({
+      success: true,
+      data: order
+    })
+  } catch (error) {
+    console.error('Submit feedback error:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Server error while submitting feedback',
       error: error.message
     })
   }

@@ -5,7 +5,9 @@ import {
   getOrderById,
   updateOrderStatus,
   getAllOrders,
-  getOrderStats
+  getOrderStats,
+  confirmDelivery,
+  submitFeedback
 } from '../controllers/orderController.js'
 import { protect } from '../middleware/authMiddleware.js'
 import { adminOnly } from '../middleware/adminMiddleware.js'
@@ -24,5 +26,7 @@ router.put('/:id/status', adminOnly, updateOrderStatus)
 router.post('/', createOrder)
 router.get('/', getUserOrders)
 router.get('/:id', getOrderById)
+router.put('/:id/confirm-delivery', confirmDelivery)
+router.put('/:id/feedback', submitFeedback)
 
 export { router as ordersRouter }

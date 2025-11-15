@@ -30,26 +30,31 @@ const orderSchema = new mongoose.Schema({
     image: String
   }],
   shippingAddress: {
+    // Legacy fields (kept for backward compatibility)
     fullName: {
-      type: String,
-      required: [true, 'Full name is required']
+      type: String
     },
     address: {
-      type: String,
-      required: [true, 'Address is required']
+      type: String
     },
     city: {
-      type: String,
-      required: [true, 'City is required']
+      type: String
     },
     postalCode: {
-      type: String,
-      required: [true, 'Postal code is required']
+      type: String
     },
     country: {
       type: String,
-      required: [true, 'Country is required']
-    }
+      default: 'Oman'
+    },
+    // New Oman-specific fields
+    phone: { type: String },
+    governorateId: { type: Number },
+    governorateName: { type: String },
+    wilayatId: { type: Number },
+    wilayatName: { type: String },
+    houseNumber: { type: String },
+    additionalInfo: { type: String }
   },
   paymentMethod: {
     type: String,
@@ -82,7 +87,7 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true,
     enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
-    default: 'pending'
+    default: 'processing'
   },
   isPaid: {
     type: Boolean,
@@ -97,6 +102,22 @@ const orderSchema = new mongoose.Schema({
   },
   deliveredAt: {
     type: Date
+  },
+  deliveryConfirmed: {
+    type: Boolean,
+    default: false
+  },
+  deliveryConfirmedAt: {
+    type: Date
+  },
+  feedback: {
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5
+    },
+    comment: String,
+    createdAt: Date
   }
 }, {
   timestamps: true

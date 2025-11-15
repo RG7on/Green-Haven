@@ -1,7 +1,8 @@
 import { useSelector, useDispatch } from 'react-redux'
 import { useEffect, useState } from 'react'
 import { fetchOrders } from '../redux/slices/ordersSlice'
-import { MdShoppingBag, MdCheckCircle, MdLocalShipping, MdHourglassEmpty, MdFilterList, MdSort, MdExpandMore, MdExpandLess } from 'react-icons/md'
+import { MdShoppingBag, MdCheckCircle, MdLocalShipping, MdHourglassEmpty, MdSort, MdExpandMore, MdExpandLess, MdStar, MdStarBorder, MdClose } from 'react-icons/md'
+import Button from '../components/common/Button'
 
 const statusIcons = {
   pending: <MdHourglassEmpty style={{color: '#ff9800'}} />,
@@ -22,21 +23,19 @@ const statusColors = {
 export default function Orders() {
   const { orders, status, error } = useSelector(s => s.orders)
   const dispatch = useDispatch()
-  const [filterStatus, setFilterStatus] = useState('all')
   const [sortBy, setSortBy] = useState('date-desc')
   const [expandedOrders, setExpandedOrders] = useState({})
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [rating, setRating] = useState(0)
+  const [feedbackComment, setFeedbackComment] = useState('')
 
   useEffect(() => {
     dispatch(fetchOrders())
   }, [dispatch])
 
-  // Filter orders by status
-  const filteredOrders = orders.filter(order => 
-    filterStatus === 'all' ? true : order.status === filterStatus
-  )
-
-  // Sort orders
-  const sortedOrders = [...filteredOrders].sort((a, b) => {
+  // Sort orders (no filtering)
+  const sortedOrders = [...orders].sort((a, b) => {
     switch(sortBy) {
       case 'date-desc':
         return new Date(b.createdAt) - new Date(a.createdAt)
@@ -56,6 +55,77 @@ export default function Orders() {
       ...prev,
       [orderId]: !prev[orderId]
     }))
+  }
+
+  const handleConfirmDelivery = async (orderId) => {
+    try {
+      const user = localStorage.getItem('user')
+      if (!user) return
+      const userData = JSON.parse(user)
+      
+      const response = await fetch(`/api/orders/${orderId}/confirm-delivery`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userData.token}`
+        }
+      })
+      
+      if (response.ok) {
+        // Show feedback modal
+        const order = orders.find(o => o._id === orderId)
+        setSelectedOrder(order)
+        setShowFeedbackModal(true)
+        // Refresh orders
+        dispatch(fetchOrders())
+      }
+    } catch (error) {
+      console.error('Failed to confirm delivery:', error)
+    }
+  }
+
+  const handleSubmitFeedback = async () => {
+    if (!selectedOrder || rating === 0) return
+    
+    try {
+      const user = localStorage.getItem('user')
+      if (!user) return
+      const userData = JSON.parse(user)
+      
+      const response = await fetch(`/api/orders/${selectedOrder._id}/feedback`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userData.token}`
+        },
+        body: JSON.stringify({
+          rating,
+          comment: feedbackComment
+        })
+      })
+      
+      if (response.ok) {
+        setShowFeedbackModal(false)
+        setRating(0)
+        setFeedbackComment('')
+        setSelectedOrder(null)
+        dispatch(fetchOrders())
+      }
+    } catch (error) {
+      console.error('Failed to submit feedback:', error)
+    }
+  }
+
+  const handleFeedbackLater = () => {
+    setShowFeedbackModal(false)
+    setRating(0)
+    setFeedbackComment('')
+    setSelectedOrder(null)
+  }
+
+  const openFeedbackModal = (order) => {
+    setSelectedOrder(order)
+    setShowFeedbackModal(true)
   }
 
   // Get tracking timeline based on order status
@@ -121,56 +191,21 @@ export default function Orders() {
         <MdShoppingBag /> Order History
       </h2>
 
-      {/* Filter and Sort Controls */}
+      {/* Sort Controls */}
       <div style={{
         maxWidth:'1400px',
         margin:'0 auto 1.5rem',
-        display:'grid',
-        gridTemplateColumns:'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
+        display:'flex',
+        alignItems:'center',
+        justifyContent:'space-between',
         gap:'1rem',
         padding:'1rem',
         background:'var(--color-surface)',
         borderRadius:'var(--radius-md)',
         border:'1px solid var(--color-border)'
       }}>
-        {/* Filter by Status */}
-        <div>
-          <label style={{
-            display:'flex',
-            alignItems:'center',
-            gap:'0.5rem',
-            color:'var(--color-text)',
-            fontSize:'0.9rem',
-            fontWeight:600,
-            marginBottom:'0.5rem'
-          }}>
-            <MdFilterList /> Filter by Status
-          </label>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            style={{
-              width:'100%',
-              padding:'0.6rem',
-              borderRadius:'var(--radius-md)',
-              border:'1px solid var(--color-border)',
-              background:'white',
-              color:'var(--color-text)',
-              fontSize:'0.95rem',
-              cursor:'pointer'
-            }}
-          >
-            <option value="all">All Orders</option>
-            <option value="pending">Pending</option>
-            <option value="processing">Processing</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
-
         {/* Sort Options */}
-        <div>
+        <div style={{flex:1, maxWidth:'400px'}}>
           <label style={{
             display:'flex',
             alignItems:'center',
@@ -205,13 +240,11 @@ export default function Orders() {
 
         {/* Results Count */}
         <div style={{
-          display:'flex',
-          alignItems:'flex-end',
-          justifyContent:'center',
           color:'var(--color-muted)',
-          fontSize:'0.95rem'
+          fontSize:'0.95rem',
+          fontWeight:500
         }}>
-          Showing {sortedOrders.length} of {orders.length} orders
+          {sortedOrders.length} {sortedOrders.length === 1 ? 'order' : 'orders'}
         </div>
       </div>
 
@@ -395,18 +428,268 @@ export default function Orders() {
                         Address
                       </p>
                       <p style={{color:'var(--color-text)', lineHeight:1.6, fontSize:'0.95rem'}}>
-                        {order.shippingAddress.address}<br/>
-                        {order.shippingAddress.city}, {order.shippingAddress.postalCode}<br/>
-                        {order.shippingAddress.country}
+                        {/* New Oman format with governorate/wilayat */}
+                        {order.shippingAddress.governorateId ? (
+                          <>
+                            {order.shippingAddress.phone && (
+                              <>Phone: {order.shippingAddress.phone}<br/></>
+                            )}
+                            House No: {order.shippingAddress.houseNumber}<br/>
+                            {order.shippingAddress.wilayatName}, {order.shippingAddress.governorateName}<br/>
+                            {order.shippingAddress.additionalInfo && (
+                              <>{order.shippingAddress.additionalInfo}<br/></>
+                            )}
+                            Oman
+                          </>
+                        ) : (
+                          /* Legacy address format */
+                          <>
+                            {order.shippingAddress.phoneNumber && (
+                              <>Phone: {order.shippingAddress.phoneNumber}<br/></>
+                            )}
+                            {order.shippingAddress.address}<br/>
+                            {order.shippingAddress.city}, {order.shippingAddress.postalCode}<br/>
+                            {order.shippingAddress.country}
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>
+
+                  {/* Confirm Delivery Button */}
+                  {order.status === 'delivered' && !order.deliveryConfirmed && (
+                    <div style={{marginTop:'1rem'}}>
+                      <Button
+                        onClick={() => handleConfirmDelivery(order._id)}
+                        style={{
+                          width:'100%',
+                          padding:'0.75rem',
+                          display:'flex',
+                          alignItems:'center',
+                          justifyContent:'center'
+                        }}
+                      >
+                        <MdCheckCircle style={{marginRight:'0.5rem'}} />
+                        Confirm Delivery Received
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Feedback Button (if delivery confirmed but no feedback) */}
+                  {order.deliveryConfirmed && !order.feedback && (
+                    <div style={{marginTop:'1rem'}}>
+                      <Button
+                        onClick={() => openFeedbackModal(order)}
+                        style={{
+                          width:'100%',
+                          padding:'0.75rem',
+                          display:'flex',
+                          alignItems:'center',
+                          justifyContent:'center'
+                        }}
+                      >
+                        <MdStar style={{marginRight:'0.5rem'}} />
+                        Leave Feedback
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Feedback Submitted */}
+                  {order.feedback && (
+                    <div style={{
+                      marginTop:'1rem',
+                      padding:'1rem',
+                      background:'#f0f9ff',
+                      borderRadius:'var(--radius-md)',
+                      border:'1px solid #bae6fd'
+                    }}>
+                      <p style={{color:'var(--color-text)', fontWeight:600, marginBottom:'0.5rem', fontSize:'0.9rem'}}>
+                        Your Feedback
+                      </p>
+                      <div style={{display:'flex', gap:'0.25rem', marginBottom:'0.5rem'}}>
+                        {[1,2,3,4,5].map(star => (
+                          star <= order.feedback.rating ? 
+                            <MdStar key={star} style={{color:'#fbbf24', fontSize:'1.2rem'}} /> :
+                            <MdStarBorder key={star} style={{color:'#d1d5db', fontSize:'1.2rem'}} />
+                        ))}
+                      </div>
+                      {order.feedback.comment && (
+                        <p style={{color:'var(--color-muted)', fontSize:'0.85rem', fontStyle:'italic'}}>
+                          "{order.feedback.comment}"
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
         ))}
       </div>
+
+      {/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div style={{
+          position:'fixed',
+          top:0,
+          left:0,
+          right:0,
+          bottom:0,
+          background:'rgba(0,0,0,0.6)',
+          display:'flex',
+          alignItems:'center',
+          justifyContent:'center',
+          zIndex:1000,
+          padding:'1rem'
+        }}
+        onClick={handleFeedbackLater}
+        >
+          <div 
+            className="card" 
+            style={{
+              maxWidth:500,
+              width:'100%',
+              padding:'2rem',
+              position:'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={handleFeedbackLater}
+              style={{
+                position:'absolute',
+                top:'1rem',
+                right:'1rem',
+                background:'none',
+                border:'none',
+                cursor:'pointer',
+                color:'var(--color-muted)',
+                fontSize:'1.5rem',
+                padding:'0.25rem'
+              }}
+            >
+              <MdClose />
+            </button>
+
+            <h2 style={{
+              fontFamily:'var(--font-display)',
+              fontSize:'1.5rem',
+              color:'var(--color-primary)',
+              marginBottom:'1.5rem',
+              textAlign:'center'
+            }}>
+              How was your experience?
+            </h2>
+
+            {selectedOrder && (
+              <p style={{
+                color:'var(--color-muted)',
+                fontSize:'0.9rem',
+                textAlign:'center',
+                marginBottom:'1.5rem'
+              }}>
+                Order #{selectedOrder._id.slice(-8).toUpperCase()}
+              </p>
+            )}
+
+            {/* Star Rating */}
+            <div style={{
+              display:'flex',
+              justifyContent:'center',
+              gap:'0.5rem',
+              marginBottom:'1.5rem'
+            }}>
+              {[1,2,3,4,5].map(star => (
+                <button
+                  key={star}
+                  onClick={() => setRating(star)}
+                  style={{
+                    background:'none',
+                    border:'none',
+                    cursor:'pointer',
+                    padding:'0.25rem',
+                    fontSize:'2.5rem',
+                    transition:'transform 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  {star <= rating ? 
+                    <MdStar style={{color:'#fbbf24'}} /> :
+                    <MdStarBorder style={{color:'#d1d5db'}} />
+                  }
+                </button>
+              ))}
+            </div>
+
+            {/* Feedback Comment */}
+            <div style={{marginBottom:'1.5rem'}}>
+              <label style={{
+                display:'block',
+                color:'var(--color-text)',
+                fontSize:'0.9rem',
+                fontWeight:600,
+                marginBottom:'0.5rem'
+              }}>
+                Tell us more (optional)
+              </label>
+              <textarea
+                value={feedbackComment}
+                onChange={(e) => setFeedbackComment(e.target.value)}
+                placeholder="Share your experience with this order..."
+                rows={4}
+                style={{
+                  width:'100%',
+                  padding:'0.75rem',
+                  borderRadius:'var(--radius-md)',
+                  border:'1px solid var(--color-border)',
+                  fontSize:'0.95rem',
+                  fontFamily:'inherit',
+                  resize:'vertical'
+                }}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{
+              display:'flex',
+              gap:'0.75rem',
+              flexDirection:'column'
+            }}>
+              <Button
+                onClick={handleSubmitFeedback}
+                disabled={rating === 0}
+                style={{
+                  width:'100%',
+                  background: rating === 0 ? '#ccc' : 'var(--color-primary)',
+                  cursor: rating === 0 ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Submit Feedback
+              </Button>
+              <button
+                onClick={handleFeedbackLater}
+                style={{
+                  width:'100%',
+                  padding:'0.75rem',
+                  background:'transparent',
+                  border:'1px solid var(--color-border)',
+                  borderRadius:'var(--radius-md)',
+                  color:'var(--color-text)',
+                  fontSize:'1rem',
+                  fontWeight:600,
+                  cursor:'pointer',
+                  transition:'all 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-surface)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

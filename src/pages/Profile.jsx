@@ -1,9 +1,10 @@
 import { useSelector, useDispatch } from 'react-redux'
 import Input from '../components/common/Input'
 import Button from '../components/common/Button'
+import AddressForm from '../components/common/AddressForm'
 import { logout, updateProfile, clearError } from '../redux/slices/authSlice'
 import { useState, useEffect } from 'react'
-import { MdPerson, MdEmail, MdHome, MdLocationCity, MdLocationOn, MdPublic, MdPhone } from 'react-icons/md'
+import { MdPerson, MdEmail } from 'react-icons/md'
 import { useNavigate } from 'react-router-dom'
 
 export default function Profile() {
@@ -12,12 +13,14 @@ export default function Profile() {
   const navigate = useNavigate()
   const [firstName, setFirstName] = useState(user?.firstName || '')
   const [lastName, setLastName] = useState(user?.lastName || '')
-  const [fullName, setFullName] = useState(user?.address?.fullName || '')
-  const [phoneNumber, setPhoneNumber] = useState(user?.address?.phoneNumber || '')
-  const [address, setAddress] = useState(user?.address?.address || '')
-  const [city, setCity] = useState(user?.address?.city || '')
-  const [postalCode, setPostalCode] = useState(user?.address?.postalCode || '')
-  const [country, setCountry] = useState(user?.address?.country || '')
+  const [addressData, setAddressData] = useState({
+    fullName: user?.address?.fullName || '',
+    phone: user?.address?.phone || '',
+    governorateId: user?.address?.governorateId || '',
+    wilayatId: user?.address?.wilayatId || '',
+    houseNumber: user?.address?.houseNumber || '',
+    additionalInfo: user?.address?.additionalInfo || ''
+  })
   const [successMessage, setSuccessMessage] = useState('')
   const [activeTab, setActiveTab] = useState('personal') // 'personal' or 'address'
 
@@ -26,12 +29,16 @@ export default function Profile() {
     if (user) {
       setFirstName(user.firstName || '')
       setLastName(user.lastName || '')
-      setFullName(user.address?.fullName || '')
-      setPhoneNumber(user.address?.phoneNumber || '')
-      setAddress(user.address?.address || '')
-      setCity(user.address?.city || '')
-      setPostalCode(user.address?.postalCode || '')
-      setCountry(user.address?.country || '')
+      if (user.address) {
+        setAddressData({
+          fullName: user.address.fullName || '',
+          phone: user.address.phone || '',
+          governorateId: user.address.governorateId || '',
+          wilayatId: user.address.wilayatId || '',
+          houseNumber: user.address.houseNumber || '',
+          additionalInfo: user.address.additionalInfo || ''
+        })
+      }
     }
   }, [user])
 
@@ -47,17 +54,18 @@ export default function Profile() {
   async function onUpdate(e) {
     e.preventDefault()
     setSuccessMessage('')
+    
+    // Convert governorateId and wilayatId to numbers for server validation
+    const processedAddress = {
+      ...addressData,
+      governorateId: addressData.governorateId ? Number(addressData.governorateId) : '',
+      wilayatId: addressData.wilayatId ? Number(addressData.wilayatId) : ''
+    }
+    
     const result = await dispatch(updateProfile({ 
       firstName, 
       lastName,
-      address: {
-        fullName,
-        phoneNumber,
-        address,
-        city,
-        postalCode,
-        country
-      }
+      address: processedAddress
     }))
     if (result.type === 'auth/updateProfile/fulfilled') {
       setSuccessMessage('Profile updated successfully!')
@@ -200,59 +208,11 @@ export default function Profile() {
                 <p style={{fontSize: '0.9rem', color: 'var(--color-muted)', marginBottom:'1.5rem', textAlign:'center'}}>
                   This address will be used to autofill checkout forms
                 </p>
-                <div className="stack" style={{gap:'1rem'}}>
-                  <Input 
-                    label="Full Name" 
-                    icon={<MdPerson />} 
-                    value={fullName} 
-                    onChange={e=>setFullName(e.target.value)}
-                    placeholder="Recipient's full name"
-                    disabled={status === 'loading'}
-                  />
-                  <Input 
-                    label="Phone Number" 
-                    icon={<MdPhone />} 
-                    value={phoneNumber} 
-                    onChange={e=>setPhoneNumber(e.target.value)}
-                    placeholder="Phone number"
-                    type="tel"
-                    disabled={status === 'loading'}
-                  />
-                  <Input 
-                    label="Address" 
-                    icon={<MdHome />} 
-                    value={address} 
-                    onChange={e=>setAddress(e.target.value)}
-                    placeholder="Street address, apartment, etc."
-                    disabled={status === 'loading'}
-                  />
-                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem'}}>
-                    <Input 
-                      label="City" 
-                      icon={<MdLocationCity />} 
-                      value={city} 
-                      onChange={e=>setCity(e.target.value)}
-                      placeholder="City"
-                      disabled={status === 'loading'}
-                    />
-                    <Input 
-                      label="Postal Code" 
-                      icon={<MdLocationOn />} 
-                      value={postalCode} 
-                      onChange={e=>setPostalCode(e.target.value)}
-                      placeholder="Postal code"
-                      disabled={status === 'loading'}
-                    />
-                  </div>
-                  <Input 
-                    label="Country" 
-                    icon={<MdPublic />} 
-                    value={country} 
-                    onChange={e=>setCountry(e.target.value)}
-                    placeholder="Country"
-                    disabled={status === 'loading'}
-                  />
-                </div>
+                <AddressForm 
+                  value={addressData}
+                  onChange={setAddressData}
+                  disabled={status === 'loading'}
+                />
               </div>
             )}
           </div>

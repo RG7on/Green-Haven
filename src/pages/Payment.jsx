@@ -6,8 +6,9 @@ import { updateProfile } from '../redux/slices/authSlice'
 import mastercardLogo from '../assets/payment_method_logos/Mastercard_Symbol_1.png'
 import paypalLogo from '../assets/payment_method_logos/PayPal_Logo_Alternative_1.png'
 import checkoutPlant from '../assets/payment_method_logos/checkout_palnt.png'
-import Input from '../components/common/Input'
+import AddressForm from '../components/common/AddressForm'
 import { MdPayment, MdShoppingCart, MdLocalShipping } from 'react-icons/md'
+import { getGovernorateById, getWilayatById } from '../utils/omanLocations'
 
 export default function Payment() {
   const [selectedMethod, setSelectedMethod] = useState(null)
@@ -16,13 +17,15 @@ export default function Payment() {
   const [error, setError] = useState(null)
   const [saveAsDefault, setSaveAsDefault] = useState(false)
   
-  // Shipping address form
-  const [fullName, setFullName] = useState('')
-  const [phoneNumber, setPhoneNumber] = useState('')
-  const [address, setAddress] = useState('')
-  const [city, setCity] = useState('')
-  const [postalCode, setPostalCode] = useState('')
-  const [country, setCountry] = useState('Oman')
+  // Shipping address data
+  const [addressData, setAddressData] = useState({
+    fullName: '',
+    phone: '',
+    governorateId: '',
+    wilayatId: '',
+    houseNumber: '',
+    additionalInfo: ''
+  })
   
   const navigate = useNavigate()
   const dispatch = useDispatch()
@@ -32,12 +35,14 @@ export default function Payment() {
   // Autofill from user's saved address
   useEffect(() => {
     if (user?.address) {
-      setFullName(user.address.fullName || '')
-      setPhoneNumber(user.address.phoneNumber || '')
-      setAddress(user.address.address || '')
-      setCity(user.address.city || '')
-      setPostalCode(user.address.postalCode || '')
-      setCountry(user.address.country || 'Oman')
+      setAddressData({
+        fullName: user.address.fullName || '',
+        phone: user.address.phone || '',
+        governorateId: user.address.governorateId || '',
+        wilayatId: user.address.wilayatId || '',
+        houseNumber: user.address.houseNumber || '',
+        additionalInfo: user.address.additionalInfo || ''
+      })
     }
   }, [user])
   
@@ -57,29 +62,34 @@ export default function Payment() {
       return
     }
     
-    if (!fullName || !phoneNumber || !address || !city || !postalCode || !country) {
-      setError('Please fill in all shipping address fields')
+    if (!addressData.fullName || !addressData.phone || !addressData.governorateId || 
+        !addressData.wilayatId || !addressData.houseNumber) {
+      setError('Please fill in all required shipping address fields')
       return
     }
     
     setProcessing(true)
     setError(null)
     
+    // Convert IDs to numbers for server validation
+    const processedAddress = {
+      ...addressData,
+      governorateId: Number(addressData.governorateId),
+      wilayatId: Number(addressData.wilayatId)
+    }
+    
     // Save address as default if checkbox is checked
     if (saveAsDefault && user) {
       await dispatch(updateProfile({
         firstName: user.firstName,
         lastName: user.lastName,
-        address: {
-          fullName,
-          phoneNumber,
-          address,
-          city,
-          postalCode,
-          country
-        }
+        address: processedAddress
       }))
     }
+    
+    // Get governorate and wilayat names
+    const governorate = getGovernorateById(processedAddress.governorateId)
+    const wilayat = getWilayatById(processedAddress.governorateId, processedAddress.wilayatId)
     
     // Prepare order data matching backend schema
     const orderData = {
@@ -91,12 +101,15 @@ export default function Payment() {
         image: item.image
       })),
       shippingAddress: {
-        fullName,
-        phoneNumber,
-        address,
-        city,
-        postalCode,
-        country
+        fullName: processedAddress.fullName,
+        phone: processedAddress.phone,
+        governorateId: processedAddress.governorateId,
+        governorateName: governorate?.name || '',
+        wilayatId: processedAddress.wilayatId,
+        wilayatName: wilayat?.name || '',
+        houseNumber: processedAddress.houseNumber,
+        additionalInfo: processedAddress.additionalInfo || '',
+        country: 'Oman'
       },
       paymentMethod: selectedMethod,
       subtotal,
@@ -380,65 +393,25 @@ export default function Payment() {
               }}>
                 <MdLocalShipping /> Shipping Address
               </h2>
-              <div className="stack" style={{gap: '0.85rem'}}>
-                <Input 
-                  label="Full Name" 
-                  value={fullName} 
-                  onChange={e => setFullName(e.target.value)} 
-                  required
-                  placeholder="Enter your full name"
-                />
-                <Input 
-                  label="Phone Number" 
-                  value={phoneNumber} 
-                  onChange={e => setPhoneNumber(e.target.value)} 
-                  required
-                  type="tel"
-                  placeholder="Phone number"
-                />
-                <Input 
-                  label="Address" 
-                  value={address} 
-                  onChange={e => setAddress(e.target.value)} 
-                  required
-                  placeholder="Street address, P.O. box"
-                />
-                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.85rem'}}>
-                  <Input 
-                    label="City" 
-                    value={city} 
-                    onChange={e => setCity(e.target.value)} 
-                    required
-                    placeholder="City"
-                  />
-                  <Input 
-                    label="Postal Code" 
-                    value={postalCode} 
-                    onChange={e => setPostalCode(e.target.value)} 
-                    required
-                    placeholder="Postal code"
-                  />
-                </div>
-                <Input 
-                  label="Country" 
-                  value={country} 
-                  onChange={e => setCountry(e.target.value)} 
-                  required
-                  placeholder="Country"
-                />
-                
-                {/* Save as default checkbox */}
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  cursor: 'pointer',
-                  padding: '0.75rem',
-                  background: 'var(--color-surface)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                  marginTop: '0.5rem'
-                }}>
+              
+              <AddressForm 
+                value={addressData}
+                onChange={setAddressData}
+                disabled={processing}
+              />
+              
+              {/* Save as default checkbox */}
+              <label style={{
+                marginTop: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                cursor: 'pointer',
+                padding: '0.75rem',
+                background: 'var(--color-surface)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)'
+              }}>
                   <input 
                     type="checkbox"
                     checked={saveAsDefault}
@@ -450,11 +423,10 @@ export default function Payment() {
                       accentColor: 'var(--color-primary)'
                     }}
                   />
-                  <span style={{fontSize: '0.95rem', color: 'var(--color-text)'}}>
+                  <span style={{fontSize: '0.95rem', color: 'var(--color-text)' }}>
                     Save this as my default shipping address
                   </span>
                 </label>
-              </div>
             </div>
 
             {/* Payment Method Section */}
