@@ -8,7 +8,6 @@ import { productsRouter } from './routes/products.js'
 import { authRouter } from './routes/auth.js'
 import { cartRouter } from './routes/cart.js'
 import { ordersRouter } from './routes/orders.js'
-import { usersRouter } from './routes/users.js'
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env') })
 
@@ -61,7 +60,6 @@ app.use('/api/auth', authRouter)
 app.use('/api/products', productsRouter)
 app.use('/api/cart', cartRouter)
 app.use('/api/orders', ordersRouter)
-app.use('/api/users', usersRouter)
 
 const PORT = process.env.APP_PORT || 5000
 

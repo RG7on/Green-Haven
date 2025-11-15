@@ -94,16 +94,13 @@ export const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(password, salt)
 
-    // Auto-assign admin role if email is admin@gmail.com
-    const role = email.toLowerCase() === 'admin@gmail.com' ? 'admin' : 'user'
-
     // Create new user
     const user = await User.create({
       firstName,
       lastName,
       email: email.toLowerCase(),
       password: hashedPassword,
-      role
+      role: 'user'
     })
 
     // Generate token
@@ -225,62 +222,6 @@ export const getCurrentUser = async (req, res) => {
     })
   } catch (error) {
     console.error('Get user error:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    })
-  }
-}
-
-// @desc    Make first user admin (setup only)
-// @route   POST /api/auth/setup-admin
-// @access  Public (one-time use)
-export const setupAdmin = async (req, res) => {
-  try {
-    const { email } = req.body
-
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide email'
-      })
-    }
-
-    // Check if any admin exists
-    const adminExists = await User.findOne({ role: 'admin' })
-    if (adminExists) {
-      return res.status(403).json({
-        success: false,
-        message: 'Admin already exists. Use MongoDB to create additional admins.'
-      })
-    }
-
-    // Find user and make them admin
-    const user = await User.findOne({ email: email.toLowerCase() })
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      })
-    }
-
-    user.role = 'admin'
-    await user.save()
-
-    res.status(200).json({
-      success: true,
-      message: `${user.firstName} ${user.lastName} is now an admin!`,
-      data: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role
-      }
-    })
-  } catch (error) {
-    console.error('Setup admin error:', error)
     res.status(500).json({
       success: false,
       message: 'Server error',

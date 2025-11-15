@@ -62,10 +62,8 @@ export default function Home() {
     setToast(`${productName} added to cart!`)
   }
   
-  // Filter products - only show active products for non-admin users
-  const displayProducts = user?.role === 'admin' 
-    ? products 
-    : products.filter(p => p.isActive !== false)
+  // Filter products - only show active products to all users
+  const displayProducts = products.filter(p => p.isActive !== false)
   
   return (
     <div className="container">

@@ -190,6 +190,7 @@ export default function Profile() {
                 />
                 <div style={{opacity: 0.6, pointerEvents: 'none'}}>
                   <Input 
+                    label="Email"
                     icon={<MdEmail />} 
                     value={user.email} 
                     type="email" 
