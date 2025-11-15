@@ -366,11 +366,11 @@ export const confirmDelivery = async (req, res) => {
       })
     }
 
-    // Verify order is delivered
-    if (order.status !== 'delivered') {
+    // Check if already confirmed
+    if (order.deliveryConfirmed) {
       return res.status(400).json({
         success: false,
-        message: 'Order must be delivered before confirming'
+        message: 'Order delivery already confirmed'
       })
     }
 

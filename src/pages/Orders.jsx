@@ -60,8 +60,13 @@ export default function Orders() {
   const handleConfirmDelivery = async (orderId) => {
     try {
       const user = localStorage.getItem('user')
-      if (!user) return
+      if (!user) {
+        console.error('No user found in localStorage')
+        return
+      }
       const userData = JSON.parse(user)
+      
+      console.log('Confirming delivery for order:', orderId)
       
       const response = await fetch(`/api/orders/${orderId}/confirm-delivery`, {
         method: 'PUT',
@@ -71,16 +76,23 @@ export default function Orders() {
         }
       })
       
+      console.log('Response status:', response.status)
+      
       if (response.ok) {
         // Show feedback modal
         const order = orders.find(o => o._id === orderId)
         setSelectedOrder(order)
         setShowFeedbackModal(true)
         // Refresh orders
-        dispatch(fetchOrders())
+        await dispatch(fetchOrders())
+      } else {
+        const errorData = await response.json()
+        console.error('Error confirming delivery:', errorData)
+        alert('Failed to confirm delivery: ' + (errorData.message || 'Unknown error'))
       }
     } catch (error) {
       console.error('Failed to confirm delivery:', error)
+      alert('Failed to confirm delivery. Please try again.')
     }
   }
 
@@ -281,24 +293,51 @@ export default function Orders() {
                   })}
                 </p>
               </div>
-              <div style={{
-                position:'absolute',
-                top:'0.5rem',
-                right:0,
-                display:'flex',
-                alignItems:'center',
-                gap:'0.5rem',
-                padding:'0.6rem 1.2rem',
-                borderRadius:'var(--radius-md)',
-                background:'var(--color-surface-2)',
-                border:`2px solid ${statusColors[order.status]}`,
-                color: statusColors[order.status],
-                fontWeight:600,
-                fontSize:'0.9rem'
-              }}>
-                {statusIcons[order.status]}
-                <span style={{textTransform:'capitalize'}}>{order.status}</span>
-              </div>
+              
+              {/* Confirm Delivery Button in header */}
+              {!order.deliveryConfirmed && (
+                <div style={{
+                  position:'absolute',
+                  top:'0.5rem',
+                  right:0
+                }}>
+                  <Button
+                    onClick={() => handleConfirmDelivery(order._id)}
+                    style={{
+                      padding:'0.6rem 1.2rem',
+                      display:'flex',
+                      alignItems:'center',
+                      gap:'0.5rem',
+                      fontSize:'0.9rem'
+                    }}
+                  >
+                    <MdCheckCircle />
+                    Confirm Delivery
+                  </Button>
+                </div>
+              )}
+              
+              {/* Delivery Confirmed Badge */}
+              {order.deliveryConfirmed && (
+                <div style={{
+                  position:'absolute',
+                  top:'0.5rem',
+                  right:0,
+                  display:'flex',
+                  alignItems:'center',
+                  gap:'0.5rem',
+                  padding:'0.6rem 1.2rem',
+                  borderRadius:'var(--radius-md)',
+                  background:'var(--color-surface-2)',
+                  border:'2px solid #4caf50',
+                  color:'#4caf50',
+                  fontWeight:600,
+                  fontSize:'0.9rem'
+                }}>
+                  <MdCheckCircle />
+                  <span>Delivered</span>
+                </div>
+              )}
             </div>
 
             {/* Two Column Layout - Order Details & Shipping Address */}
@@ -455,25 +494,6 @@ export default function Orders() {
                       </p>
                     </div>
                   </div>
-
-                  {/* Confirm Delivery Button */}
-                  {order.status === 'delivered' && !order.deliveryConfirmed && (
-                    <div style={{marginTop:'1rem'}}>
-                      <Button
-                        onClick={() => handleConfirmDelivery(order._id)}
-                        style={{
-                          width:'100%',
-                          padding:'0.75rem',
-                          display:'flex',
-                          alignItems:'center',
-                          justifyContent:'center'
-                        }}
-                      >
-                        <MdCheckCircle style={{marginRight:'0.5rem'}} />
-                        Confirm Delivery Received
-                      </Button>
-                    </div>
-                  )}
 
                   {/* Feedback Button (if delivery confirmed but no feedback) */}
                   {order.deliveryConfirmed && !order.feedback && (
@@ -661,31 +681,25 @@ export default function Orders() {
                 disabled={rating === 0}
                 style={{
                   width:'100%',
-                  background: rating === 0 ? '#ccc' : 'var(--color-primary)',
+                  padding:'0.75rem',
+                  opacity: rating === 0 ? 0.5 : 1,
                   cursor: rating === 0 ? 'not-allowed' : 'pointer'
                 }}
               >
                 Submit Feedback
               </Button>
-              <button
+              <Button
                 onClick={handleFeedbackLater}
                 style={{
                   width:'100%',
                   padding:'0.75rem',
-                  background:'transparent',
-                  border:'1px solid var(--color-border)',
-                  borderRadius:'var(--radius-md)',
+                  background:'var(--color-surface)',
                   color:'var(--color-text)',
-                  fontSize:'1rem',
-                  fontWeight:600,
-                  cursor:'pointer',
-                  transition:'all 0.2s'
+                  border:'1px solid var(--color-border)'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-surface)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 Maybe Later
-              </button>
+              </Button>
             </div>
           </div>
         </div>
