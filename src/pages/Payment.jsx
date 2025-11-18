@@ -52,8 +52,15 @@ export default function Payment() {
   // Calculate totals from cart items (backend format)
   const subtotal = items.reduce((acc, item) => acc + (item.price || 0) * (item.quantity || 0), 0)
   const tax = subtotal * 0.05 // 5% tax
-  // Shipping cost depends on delivery option
-  const shippingCost = deliveryOption === 'express' ? 5 : 0
+  // Shipping cost depends on delivery option and subtotal
+  // Match server logic: express = 5, standard = 0 if subtotal >= 50 else 3
+  let shippingCost = 0
+  if (deliveryOption === 'express') {
+    shippingCost = 5
+  } else {
+    shippingCost = subtotal >= 50 ? 0 : 3
+  }
+
   const total = subtotal + tax + shippingCost
 
   // Available payment methods shown as buttons below
