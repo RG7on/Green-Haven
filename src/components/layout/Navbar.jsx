@@ -18,12 +18,11 @@ export default function Navbar() {
     navigate('/')
   }
 
-  const handleSearch = (e) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      // Navigate to home with search query (could be implemented to filter products)
-      navigate(`/home?search=${encodeURIComponent(searchQuery)}`)
-    }
+  // Real-time search: update Home page as user types
+  const handleInputChange = (e) => {
+    const value = e.target.value
+    setSearchQuery(value)
+    navigate(`/home?search=${encodeURIComponent(value)}`)
   }
 
   return (
@@ -32,12 +31,12 @@ export default function Navbar() {
       
       {/* Search Box */}
       {user && (
-        <form onSubmit={handleSearch} style={{flex:'1', maxWidth:'400px', position:'relative'}}>
+        <div style={{flex:'1', maxWidth:'400px', position:'relative'}}>
           <input
             type="text"
             placeholder="Search plants..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleInputChange}
             style={{
               width:'100%',
               padding:'0.6rem 2.5rem 0.6rem 1rem',
@@ -47,23 +46,19 @@ export default function Navbar() {
               outline:'none'
             }}
           />
-          <button
-            type="submit"
+          <span
             style={{
               position:'absolute',
               right:'0.5rem',
               top:'50%',
               transform:'translateY(-50%)',
-              background:'none',
-              border:'none',
-              cursor:'pointer',
               color:'var(--color-primary)',
               padding:'0.25rem'
             }}
           >
             <MdSearch style={{fontSize:'1.5rem'}} />
-          </button>
-        </form>
+          </span>
+        </div>
       )}
       
       <nav style={{display:'flex', gap:'1.5rem', alignItems:'center'}}>

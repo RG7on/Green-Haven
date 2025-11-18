@@ -1,11 +1,12 @@
 import { useSelector, useDispatch } from 'react-redux'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { MdShoppingCart, MdRemoveRedEye } from 'react-icons/md'
 import Button from '../components/common/Button'
 import Toast from '../components/common/Toast'
 import { addToCartAsync } from '../redux/slices/cartSlice'
 import { selectProduct, loadProducts } from '../redux/slices/productsSlice'
 import ProductModal from '../components/ProductModal'
+import { useLocation } from 'react-router-dom'
 
 function ProductCard({ product, onAddToCart }) {
   const dispatch = useDispatch()
@@ -150,6 +151,7 @@ export default function Home() {
   const user = useSelector(s => s.auth.user)
   const dispatch = useDispatch()
   const [toast, setToast] = useState(null)
+  const location = useLocation()
   
   useEffect(() => {
     if (status === 'idle') dispatch(loadProducts())
@@ -159,8 +161,26 @@ export default function Home() {
     setToast(`${productName} added to cart!`)
   }
   
-  // Filter products - only show active products to all users
-  const displayProducts = products.filter(p => p.isActive !== false)
+  // Read `search` query param and filter products (case-insensitive)
+  const searchParam = useMemo(() => {
+    try {
+      const params = new URLSearchParams(location.search)
+      return (params.get('search') || '').trim()
+    } catch (e) {
+      return ''
+    }
+  }, [location.search])
+
+  const displayProducts = useMemo(() => {
+    const base = products.filter(p => p.isActive !== false)
+    if (!searchParam) return base
+    const q = searchParam.toLowerCase()
+    return base.filter(p => {
+      const name = (p.name || '').toLowerCase()
+      const desc = (p.description || '').toLowerCase()
+      return name.includes(q) || desc.includes(q)
+    })
+  }, [products, searchParam])
   
   return (
     <div className="container">

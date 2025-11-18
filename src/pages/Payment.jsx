@@ -52,7 +52,8 @@ export default function Payment() {
   // Calculate totals from cart items (backend format)
   const subtotal = items.reduce((acc, item) => acc + (item.price || 0) * (item.quantity || 0), 0)
   const tax = subtotal * 0.05 // 5% tax
-  const shippingCost = 3 // Flat 3 OMR shipping
+  // Shipping cost depends on delivery option
+  const shippingCost = deliveryOption === 'express' ? 5 : 0
   const total = subtotal + tax + shippingCost
 
   // Available payment methods shown as buttons below
@@ -118,7 +119,8 @@ export default function Payment() {
       subtotal,
       tax,
       shippingCost,
-      totalPrice: total
+      totalPrice: total,
+      deliveryOption // include deliveryOption for backend
     }
     
     // Create order in database
@@ -343,17 +345,17 @@ export default function Payment() {
                 <span>{subtotal.toFixed(2)} OMR</span>
               </div>
               <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem', color: 'var(--color-text)'}}>
-                <span>Tax (10%)</span>
+                <span>Tax (5%)</span>
                 <span>{tax.toFixed(2)} OMR</span>
               </div>
               <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', color: 'var(--color-text)'}}>
-                <span>Shipping</span>
+                <span>Shipping ({deliveryOption === 'express' ? 'Express' : 'Standard'})</span>
                 <span style={{color: shippingCost === 0 ? 'var(--color-primary)' : 'inherit', fontWeight: shippingCost === 0 ? 600 : 400}}>
                   {shippingCost === 0 ? 'FREE' : `${shippingCost.toFixed(2)} OMR`}
                 </span>
               </div>
               
-              {subtotal < 50 && (
+              {shippingCost > 0 && (
                 <div style={{
                   padding: '0.6rem',
                   background: 'rgba(58, 107, 49, 0.1)',

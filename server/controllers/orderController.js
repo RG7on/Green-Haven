@@ -15,7 +15,8 @@ export const createOrder = async (req, res) => {
       subtotal,
       tax,
       shippingCost,
-      totalPrice
+      totalPrice,
+      deliveryOption // add deliveryOption from frontend
     } = req.body
 
     // Validation - Check required fields
@@ -100,8 +101,13 @@ export const createOrder = async (req, res) => {
     // Business Logic - Apply tax calculation (5%)
     const calculatedTax = calculatedSubtotal * 0.05
 
-    // Business Logic - Flat shipping cost (3 OMR)
-    const calculatedShipping = 3
+    // Shipping cost logic matches frontend
+    let calculatedShipping = 3
+    if (deliveryOption === 'express') {
+      calculatedShipping = 5
+    } else if (deliveryOption === 'standard') {
+      calculatedShipping = calculatedSubtotal >= 50 ? 0 : 3
+    }
 
     const calculatedTotal = calculatedSubtotal + calculatedTax + calculatedShipping
 
