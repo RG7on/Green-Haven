@@ -8,8 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest",
-    "postinstall": "npm --prefix server install"
+    "test": "vitest"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.10.1",
