@@ -238,6 +238,9 @@ export default function Profile() {
                     disabled
                   />
                 </div>
+                  <p style={{fontSize: '0.85rem', color: 'var(--color-muted)', marginTop: '0.25rem'}}>
+                    Email cannot be changed for security reasons
+                  </p>
                 <div style={{opacity: 0.6, pointerEvents: 'none'}}>
                   <Input 
                     label="Login Location"
@@ -262,9 +265,6 @@ export default function Profile() {
                     />
                   </div>
                 </div>
-                <p style={{fontSize: '0.85rem', color: 'var(--color-muted)', marginTop: '-0.5rem'}}>
-                  Email cannot be changed for security reasons
-                </p>
               </div>
             )}
 
