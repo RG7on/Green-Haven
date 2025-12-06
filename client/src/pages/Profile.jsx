@@ -14,6 +14,8 @@ export default function Profile() {
   const [firstName, setFirstName] = useState(user?.firstName || '')
   const [lastName, setLastName] = useState(user?.lastName || '')
   const [location, setLocation] = useState('Loading...')
+  const [lat, setLat] = useState(null)
+  const [lon, setLon] = useState(null)
   const [addressData, setAddressData] = useState({
     fullName: user?.address?.fullName || '',
     phone: user?.address?.phone || '',
@@ -33,12 +35,34 @@ export default function Profile() {
         const data = await response.json()
         const locationString = `${data.city}, ${data.country_name}`
         setLocation(locationString)
+        if (data.latitude && data.longitude) {
+          setLat(Number(data.latitude))
+          setLon(Number(data.longitude))
+        }
       } catch (err) {
         console.error('Failed to fetch location:', err)
         setLocation('Location unavailable')
       }
     }
     fetchLocation()
+  }, [])
+
+  // Track live geolocation when permitted
+  useEffect(() => {
+    if (!('geolocation' in navigator)) return undefined
+
+    const watchId = navigator.geolocation.watchPosition(
+      position => {
+        setLat(position.coords.latitude)
+        setLon(position.coords.longitude)
+        setLocation(prev => prev === 'Loading...' ? `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}` : prev)
+      },
+      err => {
+        console.error('Geolocation permission denied or unavailable:', err)
+      }
+    )
+
+    return () => navigator.geolocation.clearWatch(watchId)
   }, [])
 
   // Update form when user data changes
@@ -221,6 +245,22 @@ export default function Profile() {
                     value={location} 
                     disabled
                   />
+                </div>
+                <div style={{marginTop: '0.5rem'}}>
+                  <p style={{fontSize: '0.9rem', color: 'var(--color-muted)', marginBottom: '0.5rem'}}>
+                    Map preview of your login location
+                  </p>
+                  <div style={{borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)', minHeight: '260px'}}>
+                    <iframe
+                      title="login-location-map"
+                      width="100%"
+                      height="260"
+                      style={{border: 0}}
+                      loading="lazy"
+                      src={`https://maps.google.com/maps?q=${lat ?? 0},${lon ?? 0}&z=12&output=embed`}
+                      allowFullScreen
+                    />
+                  </div>
                 </div>
                 <p style={{fontSize: '0.85rem', color: 'var(--color-muted)', marginTop: '-0.5rem'}}>
                   Email cannot be changed for security reasons
