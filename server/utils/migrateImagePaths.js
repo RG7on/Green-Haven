@@ -1,7 +1,7 @@
 import Order from '../models/Order.js'
 import Cart from '../models/Cart.js'
 import { Product } from '../models/Product.js'
-import { connectDB } from '../config/db.js'
+import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -13,7 +13,8 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') })
 
 async function migrateImagePaths() {
   try {
-    await connectDB(process.env.MONGO_URI)
+    await mongoose.connect(process.env.MONGO_URI)
+    console.log('✅ MongoDB Connected')
     console.log('🔄 Starting image path migration...')
 
     // Get all products for matching

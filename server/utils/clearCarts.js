@@ -1,5 +1,5 @@
 import Cart from '../models/Cart.js'
-import { connectDB } from '../config/db.js'
+import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -11,7 +11,8 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') })
 
 async function clearAllCarts() {
   try {
-    await connectDB(process.env.MONGO_URI)
+    await mongoose.connect(process.env.MONGO_URI)
+    console.log('✅ MongoDB Connected')
     console.log('🗑️  Clearing all carts...')
     
     const result = await Cart.deleteMany({})
