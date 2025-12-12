@@ -30,7 +30,6 @@ const orderSchema = new mongoose.Schema({
     image: String
   }],
   shippingAddress: {
-    // Legacy fields (kept for backward compatibility)
     fullName: {
       type: String
     },
@@ -47,7 +46,7 @@ const orderSchema = new mongoose.Schema({
       type: String,
       default: 'Oman'
     },
-    // New Oman-specific fields
+
     phone: { type: String },
     governorateId: { type: Number },
     governorateName: { type: String },
@@ -122,8 +121,6 @@ const orderSchema = new mongoose.Schema({
 }, {
   timestamps: true
 })
-
-// Index for faster queries by user
 orderSchema.index({ user: 1, createdAt: -1 })
 
 const Order = mongoose.model('Order', orderSchema)

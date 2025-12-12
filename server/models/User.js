@@ -34,21 +34,19 @@ const userSchema = new mongoose.Schema({
     default: 'user'
   },
   address: {
-    // Legacy fields (kept for backward compatibility)
     fullName: { type: String, default: '' },
     phoneNumber: { type: String, default: '' },
     address: { type: String, default: '' },
     city: { type: String, default: '' },
     postalCode: { type: String, default: '' },
     country: { type: String, default: '' },
-    // New Oman-specific fields
-    phone: { type: String }, // Oman phone number
-    governorateId: { type: Number }, // 1-11
+    phone: { type: String }, 
+    governorateId: { type: Number }, 
     governorateName: { type: String },
-    wilayatId: { type: Number }, // e.g., 101-1103
+    wilayatId: { type: Number }, 
     wilayatName: { type: String },
     houseNumber: { type: String },
-    additionalInfo: { type: String } // Optional additional address line
+    additionalInfo: { type: String }
   },
   lastLogin: {
     date: { type: Date },
