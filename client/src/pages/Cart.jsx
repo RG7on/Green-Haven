@@ -85,10 +85,12 @@ export default function Cart() {
             paddingRight:'0.5rem'
           }}>
             <div className="stack" style={{gap:'1rem'}}>
-              {items.map(item => {
+              {items.map((item, index) => {
                 const productId = item.product?._id || item.product
+                // Use a combination of productId and index to ensure unique keys
+                const uniqueKey = productId || `item-${index}`
                 return (
-                  <div key={productId} className="card" style={{
+                  <div key={uniqueKey} className="card" style={{
                     display:'grid',
                     gridTemplateColumns:'100px 1fr auto',
                     gap:'1rem',
@@ -96,7 +98,7 @@ export default function Cart() {
                     alignItems:'center'
                   }}>
                     <img 
-                      src={item.image || '/vite.svg'} 
+                      src={item.image || '/images/general/vite.svg'} 
                       alt={item.name} 
                       style={{
                         width:100,

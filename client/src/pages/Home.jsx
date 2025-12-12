@@ -52,7 +52,7 @@ function ProductCard({ product, onAddToCart }) {
         }}
       >
         <img 
-          src={product.image || '/vite.svg'} 
+          src={product.image || '/images/general/vite.svg'} 
           alt={product.name} 
           style={{
             width:'100%',

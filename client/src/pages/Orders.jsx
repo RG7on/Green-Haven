@@ -372,7 +372,7 @@ export default function Orders() {
                       border:'1px solid var(--color-border)'
                     }}>
                       <img 
-                        src={item.image || '/vite.svg'} 
+                        src={item.image || '/images/general/vite.svg'} 
                         alt={item.name} 
                         style={{
                           width:70, 

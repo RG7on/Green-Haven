@@ -19,7 +19,7 @@ vi.mock('react-router-dom', async () => {
 });
 
 // Mock API calls
-vi.mock('../services/api', () => ({
+vi.mock('../utils/api', () => ({
   default: {
     post: vi.fn(),
   },

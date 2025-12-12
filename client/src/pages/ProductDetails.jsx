@@ -22,7 +22,7 @@ export default function ProductDetails() {
   return (
     <div className="container" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'2rem', alignItems:'center', paddingTop:'2rem'}}>
       <div className="card" style={{padding:'1rem'}}>
-        <img src={product.image || '/vite.svg'} alt="" style={{width:'100%', objectFit:'contain'}} />
+        <img src={product.image || '/images/general/vite.svg'} alt="" style={{width:'100%', objectFit:'contain'}} />
       </div>
       <div className="stack">
         <h2 className="display" style={{color:'var(--color-primary)'}}>{product.name}</h2>

@@ -2,8 +2,12 @@ import { Product } from '../models/Product.js'
 import { connectDB } from '../config/db.js'
 import dotenv from 'dotenv'
 import path from 'path'
+import { fileURLToPath } from 'url'
 
-dotenv.config({ path: path.resolve(process.cwd(), '../.env') })
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+dotenv.config({ path: path.resolve(__dirname, '../.env') })
 
 const demoProducts = [
   {
@@ -11,7 +15,7 @@ const demoProducts = [
     description: 'Beautiful Swiss Cheese Plant with stunning split leaves. Perfect for indoor spaces with bright, indirect light. Easy to care for and grows vigorously.',
     price: 12.5,
     currency: 'OMR',
-    image: '/plants/Monstera_Deliciosa.jpg',
+    image: '/images/plants/Monstera_Deliciosa.jpg',
     stock: 25,
     category: 'Indoor Plants',
     isActive: true
@@ -21,7 +25,7 @@ const demoProducts = [
     description: 'Low-maintenance air-purifying plant that thrives on neglect. Perfect for beginners and low-light conditions. Extremely hardy and drought-tolerant.',
     price: 8.0,
     currency: 'OMR',
-    image: '/plants/Snake_Plant.jpg',
+    image: '/images/plants/Snake_Plant.jpg',
     stock: 40,
     category: 'Indoor Plants',
     isActive: true
@@ -31,7 +35,7 @@ const demoProducts = [
     description: 'Trailing vine with heart-shaped golden-green leaves. Excellent air purifier and very easy to propagate. Thrives in various light conditions.',
     price: 6.5,
     currency: 'OMR',
-    image: '/plants/Pothos_Golden.jpg',
+    image: '/images/plants/Pothos_Golden.jpg',
     stock: 35,
     category: 'Indoor Plants',
     isActive: true
@@ -41,7 +45,7 @@ const demoProducts = [
     description: 'Trendy statement plant with large, violin-shaped leaves. Prefers bright indirect light and consistent watering. A stunning focal point for any room.',
     price: 25.0,
     currency: 'OMR',
-    image: '/plants/Fiddle_Leaf_Fig.jpg',
+    image: '/images/plants/Fiddle_Leaf_Fig.jpg',
     stock: 15,
     category: 'Indoor Plants',
     isActive: true
@@ -51,7 +55,7 @@ const demoProducts = [
     description: 'Medicinal succulent with healing gel inside thick leaves. Drought-tolerant and loves bright light. Great for skincare and burns.',
     price: 7.5,
     currency: 'OMR',
-    image: '/plants/Aloe_Vera.jpg',
+    image: '/images/plants/Aloe_Vera.jpg',
     stock: 30,
     category: 'Succulents',
     isActive: true
@@ -61,7 +65,7 @@ const demoProducts = [
     description: 'Elegant plant with glossy leaves and white flowers. Excellent air purifier and thrives in low to medium light. Shows when it needs water by drooping.',
     price: 10.0,
     currency: 'OMR',
-    image: '/plants/Peace_Lily.jpg',
+    image: '/images/plants/Peace_Lily.jpg',
     stock: 20,
     category: 'Indoor Plants',
     isActive: true
@@ -71,7 +75,7 @@ const demoProducts = [
     description: 'Bold plant with large, glossy burgundy leaves. Low-maintenance and grows tall, making it a perfect statement piece. Prefers bright indirect light.',
     price: 15.0,
     currency: 'OMR',
-    image: '/plants/Rubber_Plant.jpg',
+    image: '/images/plants/Rubber_Plant.jpg',
     stock: 18,
     category: 'Indoor Plants',
     isActive: true
@@ -81,7 +85,7 @@ const demoProducts = [
     description: 'Incredibly resilient plant with waxy, dark green leaves. Thrives on neglect and tolerates low light. Drought-tolerant and virtually indestructible.',
     price: 9.5,
     currency: 'OMR',
-    image: '/plants/ZZ_Plant.jpg',
+    image: '/images/plants/ZZ_Plant.jpg',
     stock: 28,
     category: 'Indoor Plants',
     isActive: true
@@ -91,7 +95,7 @@ const demoProducts = [
     description: 'Classic hanging plant with arching striped leaves and baby plantlets. Excellent air purifier and easy to propagate. Perfect for hanging baskets.',
     price: 5.5,
     currency: 'OMR',
-    image: '/plants/Spider_Plant.jpg',
+    image: '/images/plants/Spider_Plant.jpg',
     stock: 45,
     category: 'Indoor Plants',
     isActive: true

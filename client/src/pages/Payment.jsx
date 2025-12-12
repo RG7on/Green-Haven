@@ -4,9 +4,6 @@ import { useSelector, useDispatch } from 'react-redux'
 import { createOrder } from '../redux/slices/ordersSlice'
 import { updateProfile } from '../redux/slices/authSlice'
 import { clearCart } from '../redux/slices/cartSlice'
-import mastercardLogo from '../assets/payment_method_logos/Mastercard_Symbol_1.png'
-import paypalLogo from '../assets/payment_method_logos/PayPal_Logo_Alternative_1.png'
-import checkoutPlant from '../assets/payment_method_logos/checkout_palnt.png'
 import AddressForm from '../components/common/AddressForm'
 import { MdPayment, MdShoppingCart, MdLocalShipping } from 'react-icons/md'
 import { getGovernorateById, getWilayatById } from '../utils/omanLocations'
@@ -191,7 +188,7 @@ export default function Payment() {
         }}>
           {/* Image on top */}
           <img 
-            src={checkoutPlant} 
+            src="/images/payment/checkout_palnt.png" 
             alt="Success"
             style={{
               width: '200px',
@@ -296,7 +293,7 @@ export default function Payment() {
                   borderBottom: '1px solid var(--color-border)'
                 }}>
                   <img 
-                    src={item.image || '/vite.svg'} 
+                    src={item.image || '/images/general/vite.svg'} 
                     alt={item.name}
                     style={{
                       width: '50px',
@@ -592,7 +589,7 @@ export default function Payment() {
                 >
                   <div style={{height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                     <img 
-                      src={mastercardLogo} 
+                      src="/images/payment/Mastercard_Symbol_1.png" 
                       alt="Credit Card" 
                       style={{width: '70px', height: '50px', objectFit: 'contain'}}
                     />
@@ -621,7 +618,7 @@ export default function Payment() {
                 >
                   <div style={{height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                     <img 
-                      src={paypalLogo} 
+                      src="/images/payment/PayPal_Logo_Alternative_1.png" 
                       alt="PayPal" 
                       style={{width: '94px', height: '67px', objectFit: 'contain'}}
                     />

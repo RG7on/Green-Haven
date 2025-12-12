@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { register, clearError } from '../redux/slices/authSlice'
 import { fetchCart } from '../redux/slices/cartSlice'
 import { useNavigate, Link } from 'react-router-dom'
-import homeArt from '../assets/home_art_photo.png'
 import { MdPerson, MdEmail, MdLock } from 'react-icons/md'
 
 export default function SignUp() {
@@ -44,7 +43,7 @@ export default function SignUp() {
   return (
     <div className="center" style={{padding:'2rem 1rem'}}>
       <div className="stack" style={{maxWidth:600, textAlign:'center'}}>
-        <img src={homeArt} alt="logo" style={{height:96, margin:'0 auto'}} />
+        <img src="/images/general/home_art_photo.png" alt="logo" style={{height:96, margin:'0 auto'}} />
         <h1 className="display" style={{fontSize:'2rem', marginBottom:'1rem'}}>Greene Heaven</h1>
         <form onSubmit={handleSubmit} className="stack card" style={{padding:'2rem'}}>
           <h2 style={{textAlign:'center'}}>Sign Up</h2>

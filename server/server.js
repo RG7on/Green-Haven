@@ -13,6 +13,13 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') })
 
 const app = express()
 
+// Get current directory for ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// Serve static files from client's public directory (for images)
+app.use('/images', express.static(path.join(__dirname, '../client/public/images')))
+
 // CORS configuration - allow requests from Render frontend
 const corsOptions = {
   origin: function (origin, callback) {
