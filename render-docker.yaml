@@ -1,0 +1,32 @@
+services:
+  # Backend Service (Docker)
+  - type: web
+    name: green-haven-backend-docker
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PORT
+        value: 5000
+    healthCheckPath: /api/health
+
+  # Frontend Service (Docker)
+  - type: web
+    name: green-haven-frontend-docker
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./client/Dockerfile
+    dockerContext: ./client
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: green-haven-backend-docker
+          type: web
+          property: url
