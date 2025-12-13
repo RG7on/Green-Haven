@@ -18,8 +18,9 @@ services:
     healthCheckPath: /api/health
 
   # Frontend Service (Static Site)
-  - type: static
+  - type: web
     name: green-haven-frontend
+    runtime: static
     region: oregon
     plan: free
     rootDir: client
