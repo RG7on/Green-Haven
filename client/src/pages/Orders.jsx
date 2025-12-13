@@ -4,6 +4,8 @@ import { fetchOrders } from '../redux/slices/ordersSlice'
 import { MdShoppingBag, MdCheckCircle, MdLocalShipping, MdHourglassEmpty, MdSort, MdExpandMore, MdExpandLess, MdStar, MdStarBorder, MdClose } from 'react-icons/md'
 import Button from '../components/common/Button'
 
+const API_URL = import.meta.env.VITE_API_URL || '/api'
+
 const statusIcons = {
   pending: <MdHourglassEmpty style={{color: '#ff9800'}} />,
   processing: <MdHourglassEmpty style={{color: '#2196f3'}} />,
@@ -68,7 +70,7 @@ export default function Orders() {
       
       console.log('Confirming delivery for order:', orderId)
       
-      const response = await fetch(`/api/orders/${orderId}/confirm-delivery`, {
+      const response = await fetch(`${API_URL}/orders/${orderId}/confirm-delivery`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -104,7 +106,7 @@ export default function Orders() {
       if (!user) return
       const userData = JSON.parse(user)
       
-      const response = await fetch(`/api/orders/${selectedOrder._id}/feedback`, {
+      const response = await fetch(`${API_URL}/orders/${selectedOrder._id}/feedback`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
